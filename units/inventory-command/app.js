@@ -51,6 +51,30 @@ const inventoryData = [
         condition: "Excellent (Auto-Grade)",
         fair_market_price: 50.00,
         status: "AI-Identified"
+    },
+    {
+        id: "INV-005",
+        brand: "Acu-Rite",
+        model: "Acu-Tip",
+        name: "3D Edge Finder",
+        range: "Precision Probing",
+        era: "Modern Industrial",
+        tier: "Pinnacle",
+        condition: "Excellent (Auto-Grade)",
+        fair_market_price: 200.00,
+        status: "AI-Identified"
+    },
+    {
+        id: "INV-006",
+        brand: "Mahr",
+        model: "Elmillimess",
+        name: "Dial Comparator (.0001\")",
+        range: "0-20 (Comparator)",
+        era: "Vintage (Germany)",
+        tier: "Pinnacle",
+        condition: "Very Good (Auto-Grade)",
+        fair_market_price: 250.00,
+        status: "AI-Identified"
     }
 ];
 
