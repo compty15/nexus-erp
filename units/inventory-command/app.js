@@ -1,107 +1,76 @@
 /** 
  * Inventory Command | Shanal Cavity 
- * Core App Logic & Mock Data
+ * Live Real-time Logic & Supabase Sync
  */
 
-const inventoryData = [
-    {
-        id: "INV-001",
-        brand: "Starrett",
-        model: "No. 436",
-        name: "Outside Micrometer",
-        range: "0-1\"",
-        era: "1960s (Satin Chrome)",
-        tier: "Pinnacle",
-        condition: "Near Mint",
-        fair_market_price: 65.00,
-        status: "Identified"
-    },
-    {
-        id: "INV-002",
-        brand: "Mitutoyo",
-        model: "103-129",
-        name: "Outside Micrometer",
-        range: "0-25mm",
-        era: "1980s (Orange Accents)",
-        tier: "Pinnacle",
-        condition: "Excellent",
-        fair_market_price: 55.00,
-        status: "Queued"
-    },
-    {
-        id: "INV-003",
-        brand: "Brown & Sharpe",
-        model: "599",
-        name: "Slant/Line Micrometer",
-        range: "0-1\"",
-        era: "1970s",
-        tier: "Industrial",
-        condition: "Good",
-        fair_market_price: 45.00,
-        status: "Identified"
-    },
-    {
-        id: "INV-004",
-        brand: "Scherr-Tumico",
-        model: "Dial Indicator",
-        name: "Precision Indicator (.0001\")",
-        range: ".025\"",
-        era: "1960s-70s (USA)",
-        tier: "Industrial",
-        condition: "Excellent (Auto-Grade)",
-        fair_market_price: 50.00,
-        status: "AI-Identified"
-    },
-    {
-        id: "INV-005",
-        brand: "Acu-Rite",
-        model: "Acu-Tip",
-        name: "3D Edge Finder",
-        range: "Precision Probing",
-        era: "Modern Industrial",
-        tier: "Pinnacle",
-        condition: "Excellent (Auto-Grade)",
-        fair_market_price: 200.00,
-        status: "AI-Identified"
-    },
-    {
-        id: "INV-006",
-        brand: "Mahr",
-        model: "Elmillimess",
-        name: "Dial Comparator (.0001\")",
-        range: "0-20 (Comparator)",
-        era: "Vintage (Germany)",
-        tier: "Pinnacle",
-        condition: "Very Good (Auto-Grade)",
-        fair_market_price: 250.00,
-        status: "AI-Identified"
+const SUPABASE_URL = 'https://lcylseuwnybtunpiuqyg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxjeWxzZXV3bnlidHVucGl1cXlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNTgyNjgsImV4cCI6MjA5MDgzNDI2OH0.4B44VqXiFlUNwwmjqVMFfGDnnrbyNFvkyKUZKApumf0';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let inventoryData = [];
+
+const CONFIG = {
+    EBAY_FEE_MULTIPLIER: 1.15,
+    EBAY_SHIPPING_BUFFER: 15.00,
+    FB_DISCOUNT: 0.90
+};
+
+async function fetchInventory() {
+    console.log("Fetching latest inventory from Metropolis DB...");
+    const { data, error } = await _supabase
+        .from('tools')
+        .select('*')
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error("Supabase Fetch Error:", error);
+        return;
     }
-];
+
+    inventoryData = data || [];
+    renderInventory();
+}
+
+// Real-time Subscription
+_supabase
+    .channel('schema-db-changes')
+    .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'tools' 
+    }, (payload) => {
+        console.log('Real-time update received:', payload);
+        fetchInventory();
+    })
+    .subscribe();
 
 function calculateEbayPrice(fmp) {
-    return (fmp * 1.15) + 15.00;
+    return (fmp * CONFIG.EBAY_FEE_MULTIPLIER) + CONFIG.EBAY_SHIPPING_BUFFER;
 }
 
 function calculateFBPrice(fmp) {
-    return fmp * 0.90;
+    return fmp * CONFIG.FB_DISCOUNT;
 }
 
 function renderInventory() {
     const grid = document.getElementById('inventory-grid');
     if (!grid) return;
 
+    if (inventoryData.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full py-20 text-center">
+                <p class="text-zinc-500 font-outfit uppercase tracking-widest text-xs animate-pulse">Waiting for arrivals in Metropolis...</p>
+            </div>
+        `;
+        return;
+    }
+
     grid.innerHTML = inventoryData.map((item, index) => {
         const ebayPrice = (item.fair_market_price * CONFIG.EBAY_FEE_MULTIPLIER + CONFIG.EBAY_SHIPPING_BUFFER).toFixed(2);
         const fbPrice = (item.fair_market_price * CONFIG.FB_DISCOUNT).toFixed(2);
-        const brandClass = item.brand.toLowerCase() === 'starrett' ? 'starrett-text' : 
-                          item.brand.toLowerCase() === 'mitutoyo' ? 'mitutoyo-text' : 'text-zinc-300';
+        const brandClass = item.brand?.toLowerCase() === 'starrett' ? 'starrett-text' : 
+                          item.brand?.toLowerCase() === 'mitutoyo' ? 'mitutoyo-text' : 'text-zinc-300';
         
-        // Trigger research in background after a slight "premium" offset
-        setTimeout(async () => {
-            const data = await researchMarketPrice(item);
-            updateToolUIWithMarketData(item.id, data);
-        }, 1000 + (index * 200));
-
         // Photos and Reference Groups
         const photoGallery = item.photos ? `
             <div class="flex gap-2 mt-4 overflow-x-auto pb-1 no-scrollbar">
@@ -243,32 +212,47 @@ function simulateReferenceMatch() {
     `;
 }
 
-function saveNewListing() {
+async function saveNewListing() {
     const brand = document.getElementById('tool-brand').value || 'Unknown';
     const model = document.getElementById('tool-model').value || 'Unknown';
     
-    const newTool = {
-        id: "INV-" + Math.floor(Math.random() * 1000),
-        brand: brand,
-        model: model,
-        name: "Identified Precision Tool",
-        range: "Pending verification",
-        era: "Auto-Detected",
-        tier: "Industrial",
-        condition: "Excellent (Auto-Grade)",
-        fair_market_price: 125.00,
-        status: "Active",
-        photos: [...pendingPhotos],
-        references: [
-            { image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200", label: "Catalog P.42" },
-            { image: "https://images.unsplash.com/photo-1581092580497-e0d23cb6117e?w=200", label: "Manual Fig. 3" },
-            { image: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=200", label: "Model Match" }
-        ]
-    };
+    console.log("Saving new high-precision listing to Supabase...");
     
-    inventoryData.unshift(newTool);
-    renderInventory();
-    closeAddItemModal();
+    const { data, error } = await _supabase
+        .from('tools')
+        .select('id')
+        .order('id', { ascending: false })
+        .limit(1);
+
+    const nextId = data && data.length > 0 ? data[0].id + 1 : 1000;
+
+    const { error: insertError } = await _supabase
+        .from('tools')
+        .insert([{
+            brand: brand,
+            model: model,
+            name: "Identified Precision Tool",
+            range: "Pending verification",
+            era: "Auto-Detected",
+            tier: "Industrial",
+            condition: "Excellent (Auto-Grade)",
+            fair_market_price: 125.00,
+            status: "Pending",
+            photos: [...pendingPhotos],
+            // Initial reference group can be empty for the AI to fill
+            references: [
+                { image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200", label: "Catalog P.42" },
+                { image: "https://images.unsplash.com/photo-1581092580497-e0d23cb6117e?w=200", label: "Manual Fig. 3" }
+            ]
+        }]);
+
+    if (insertError) {
+        console.error("Supabase Insert Error:", insertError);
+        alert("Failed to save listing. Check console.");
+    } else {
+        closeAddItemModal();
+        // Real-time subscription will trigger re-render
+    }
 }
 
 window.openAddItemModal = openAddItemModal;
@@ -278,5 +262,5 @@ window.saveNewListing = saveNewListing;
 // Initial Render
 document.addEventListener('DOMContentLoaded', () => {
     // Artificial delay to feel "premium"
-    setTimeout(renderInventory, 300);
+    setTimeout(fetchInventory, 300);
 });

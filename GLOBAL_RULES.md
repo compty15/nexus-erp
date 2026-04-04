@@ -42,3 +42,11 @@ These rules govern the behavior of the **Listing Command Center** and any AI age
 - Use **Gemini 1.5 Flash** for initial tool ID (Vision).
 - Use **PostgreSQL (Supabase)** for the master inventory list.
 - All code must follow the project's styling: **Vanilla CSS + Dark Mode**.
+
+## 5. Iteration & Deployment Workflow
+
+All project development iterations must follow this lifecycle for production readiness:
+1.  **Local Development**: Perform all iterations and changes on the local host from the latest version in GitHub.
+2.  **Revision Review**: Once an iteration is stable and ready, verify it (using internal tests/browser).
+3.  **GitHub Synchronization**: Stage all changes and commit with a milestone tag (e.g., `[RENDITION-X]`). Push to the master branch.
+4.  **Production Deployment**: After the GitHub push, execute a production release to `suppository.vercel.app` to update the live site.
