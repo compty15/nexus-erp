@@ -66,6 +66,25 @@
             </header>
 
             <div class="p-8">
+                <div class="mb-12">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-outfit font-bold text-white">Processing Hub</h2>
+                            <p class="text-zinc-500 text-sm mt-1">Found images in <code class="text-zinc-400 bg-zinc-900 px-1 rounded">units/inbox</code> awaiting analysis.</p>
+                        </div>
+                        <button onclick="scanInbox()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-bold px-3 py-1.5 rounded-full border border-zinc-700 transition-all flex items-center gap-2">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                             Scan Inbox
+                        </button>
+                    </div>
+                    <div id="inbox-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Pending files will be listed here -->
+                         <div class="border border-dashed border-zinc-800 rounded-xl p-6 flex flex-col items-center justify-center text-zinc-600">
+                            <p class="text-[10px] text-center italic">Drop tool snapshots into units/inbox then click Scan.</p>
+                         </div>
+                    </div>
+                </div>
+
                 <div class="mb-8">
                     <h2 class="text-2xl font-outfit font-bold text-white">Active Inventory</h2>
                     <p class="text-zinc-500 text-sm mt-1">High-precision metrology tools awaiting valuation or listing.</p>
@@ -80,6 +99,7 @@
             </div>
         </main>
     </div>
+    <script src="listing_logic.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
