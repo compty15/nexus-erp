@@ -102,6 +102,11 @@ function renderInventory() {
 
                 <div class="pt-4 border-t border-zinc-800/50 flex items-end justify-between">
                     <div class="space-y-1">
+                        <div id="status-${item.id}" class="mb-1">
+                            <button onclick="stageEbayDraft('${item.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-bold px-2 py-1 rounded-md border border-zinc-700 leading-none transition-all">
+                                Stage as eBay Draft
+                            </button>
+                        </div>
                         <p class="text-[9px] text-zinc-500 uppercase">Est. Fair Market</p>
                         <p class="price-tag">$${item.fair_market_price.toFixed(2)}</p>
                     </div>
