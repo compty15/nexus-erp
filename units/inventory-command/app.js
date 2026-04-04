@@ -67,13 +67,19 @@ function renderInventory() {
     if (!grid) return;
 
     grid.innerHTML = inventoryData.map((item, index) => {
-        const ebayPrice = calculateEbayPrice(item.fair_market_price).toFixed(2);
-        const fbPrice = calculateFBPrice(item.fair_market_price).toFixed(2);
+        const ebayPrice = (item.fair_market_price * CONFIG.EBAY_FEE_MULTIPLIER + CONFIG.EBAY_SHIPPING_BUFFER).toFixed(2);
+        const fbPrice = (item.fair_market_price * CONFIG.FB_DISCOUNT).toFixed(2);
         const brandClass = item.brand.toLowerCase() === 'starrett' ? 'starrett-text' : 
                           item.brand.toLowerCase() === 'mitutoyo' ? 'mitutoyo-text' : 'text-zinc-300';
         
+        // Trigger research in background after a slight "premium" offset
+        setTimeout(async () => {
+            const data = await researchMarketPrice(item);
+            updateToolUIWithMarketData(item.id, data);
+        }, 1000 + (index * 200));
+
         return `
-            <div class="tool-card animate-fade-in" style="animation-delay: ${index * 100}ms">
+            <div id="card-${item.id}" class="tool-card animate-fade-in" style="animation-delay: ${index * 100}ms">
                 <div class="flex items-start justify-between mb-4">
                     <div>
                         <span class="brand-label ${brandClass}">${item.brand}</span>
