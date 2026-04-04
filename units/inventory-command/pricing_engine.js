@@ -53,7 +53,7 @@ function updateToolUIWithMarketData(toolId, marketData) {
     
     // Add "Market Evidence" Tooltip/Label
     const evidenceContainer = document.createElement('div');
-    evidenceContainer.className = "flex items-center gap-1.5 mt-2 pt-2 border-t border-zinc-900";
+    evidenceContainer.className = "flex items-center gap-1.5 pt-2 border-t border-zinc-900";
     evidenceContainer.innerHTML = `
         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
         <span class="text-[9px] text-zinc-500 italic">Verified by ${marketData.source}</span>

@@ -34,6 +34,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class=""><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                     Market Intelligence
                 </a>
+                <a href="https://suppository.vercel.app/" target="_blank" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-zinc-400 hover:bg-zinc-800/50 hover:text-white group transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class=""><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                    Live Node
+                </a>
             </nav>
             
             <div class="p-4 border-t border-zinc-800 bg-zinc-900/30">
@@ -58,7 +62,7 @@
                 </div>
                 
                 <div class="flex items-center gap-4">
-                    <button class="bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold px-4 py-2 rounded-full transition-all flex items-center gap-2">
+                    <button onclick="openAddItemModal()" class="bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold px-4 py-2 rounded-full transition-all flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class=""><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                         New Listing
                     </button>
@@ -99,6 +103,66 @@
             </div>
         </main>
     </div>
+    <!-- Add Item Modal -->
+    <div id="add-item-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
+            <div class="p-6 border-b border-zinc-800 flex items-center justify-between">
+                <h3 class="text-xl font-outfit font-bold">New Precision Listing</h3>
+                <button onclick="closeAddItemModal()" class="text-zinc-500 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            
+            <div class="p-8 space-y-6 overflow-y-auto max-h-[80vh]">
+                <!-- Multi-Image Upload Zone -->
+                <div id="drop-zone" class="border-2 border-dashed border-zinc-800 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 hover:border-zinc-600 transition-all cursor-pointer bg-zinc-950/50">
+                    <div class="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-center">Drop high-precision snapshots here</p>
+                        <p class="text-[10px] text-zinc-500 text-center uppercase tracking-widest mt-1">Multi-capture enabled (Front, Back, Stamps)</p>
+                    </div>
+                    <input type="file" id="file-input" multiple class="hidden">
+                    <button onclick="document.getElementById('file-input').click()" class="mt-2 text-[10px] font-bold text-zinc-300 hover:text-white transition-all underline underline-offset-4">Select Files</button>
+                </div>
+
+                <!-- Preview Area -->
+                <div id="image-previews" class="grid grid-cols-4 gap-3 hidden">
+                    <!-- Preview thumbnails will go here -->
+                </div>
+
+                <!-- Live AI Intelligence Group -->
+                <div id="reference-match-zone" class="hidden animate-fade-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                        <h4 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">AI Reference Match Findings</h4>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <!-- Reference examples will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Detail Fields -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-zinc-500 uppercase">Detection Brand</label>
+                        <input type="text" id="tool-brand" placeholder="e.g. Starrett" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 transition-colors">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-zinc-500 uppercase">Model / Part No.</label>
+                        <input type="text" id="tool-model" placeholder="e.g. No. 436" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 transition-colors">
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-zinc-800 bg-zinc-950/30 flex items-center justify-end gap-3">
+                <button onclick="closeAddItemModal()" class="text-[10px] font-bold text-zinc-500 hover:text-zinc-300 transition-all uppercase px-4 py-2">Discard</button>
+                <button onclick="saveNewListing()" class="bg-zinc-100 hover:bg-white text-zinc-950 text-[10px] font-bold px-6 py-2 rounded-full transition-all uppercase">Verify & Save Listing</button>
+            </div>
+        </div>
+    </div>
+
     <script src="ebay_drafter.js"></script>
     <script src="inbox_service.js"></script>
     <script src="pricing_engine.js"></script>

@@ -1,5 +1,13 @@
-This is your new *vault*.
+# SHANAL CAVITY METROPOLIS
 
-Make a note of something, [[create a link]], or try [the Importer](https://help.obsidian.md/Plugins/Importer)!
+Welcome to the central node for high-precision metrology inventory.
 
-When you're ready, delete this note and make the vault your own.
+### Production Environment
+- **Live Hub**: [suppository.vercel.app](https://suppository.vercel.app/)
+
+### Current Status
+- **Mobile Agent (App.js)**: Build corrected and linked to production.
+- **Listing Command Center**: Local dashboard integrated with Live Node monitoring.
+- **AI Processor**: Synchronized with Supabase for real-time tool research.
+
+*A precision instrument is only as good as its last calibration.*
