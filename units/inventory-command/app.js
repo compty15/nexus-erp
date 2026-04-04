@@ -39,6 +39,18 @@ const inventoryData = [
         condition: "Good",
         fair_market_price: 45.00,
         status: "Identified"
+    },
+    {
+        id: "INV-004",
+        brand: "Scherr-Tumico",
+        model: "Dial Indicator",
+        name: "Precision Indicator (.0001\")",
+        range: ".025\"",
+        era: "1960s-70s (USA)",
+        tier: "Industrial",
+        condition: "Excellent (Auto-Grade)",
+        fair_market_price: 50.00,
+        status: "AI-Identified"
     }
 ];
 

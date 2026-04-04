@@ -51,8 +51,6 @@ Machinist to machinist - shoot me an offer if interested!
  */
 async function scanInbox() {
     console.log("Scanning units/inbox for new snapshots...");
-    // In a real app, this would call an API or an MCP tool 
-    // to list files and run them through Gemini 1.5 Flash.
     
     const inboxGrid = document.getElementById('inbox-grid');
     inboxGrid.innerHTML = `
@@ -61,13 +59,17 @@ async function scanInbox() {
         </div>
     `;
     
-    // Simulate process
+    // Simulate multi-modal analysis (Vision ID + Auto-Grading)
     setTimeout(() => {
         inboxGrid.innerHTML = `
             <div class="tool-card border-zinc-500 animate-fade-in">
-                <div class="brand-label starrett-text mb-1">Awaiting Final Review</div>
-                <h3 class="text-sm font-bold">Identified: Starrett No. 436</h3>
-                <p class="text-[10px] text-zinc-500 mb-4">Found in inbox: tool_photo_01.jpg</p>
+                <div class="brand-label starrett-text mb-1">AI Analysis Complete</div>
+                <h3 class="text-sm font-bold">Starrett No. 436 (0-1")</h3>
+                <div class="flex items-center gap-2 mt-1 mb-4">
+                    <span class="badge badge-pinnacle">Pinnacle</span>
+                    <span class="text-[9px] text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded">Auto-Grade: Near Mint</span>
+                </div>
+                <p class="text-[10px] text-zinc-500 mb-4 italic">Detected: Satin chrome finish with original black wrinkle paint. No visible pitting.</p>
                 <div class="flex gap-2">
                     <button class="flex-1 bg-zinc-100 text-zinc-950 text-[10px] font-bold py-2 rounded-lg">Confirm & List</button>
                     <button class="bg-zinc-800 text-zinc-300 text-[10px] font-bold px-3 py-2 rounded-lg border border-zinc-700">Reject</button>
