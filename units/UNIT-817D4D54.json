@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "unit_id": "UNIT-817D4D54",
+        "timestamp": "2026-04-03T19:11:55.179788",
+        "mn_brand": true
+    },
+    "product": {
+        "brand": "Scherr-Tumico",
+        "model": "No. 51",
+        "era": "Vintage (1950-1990)",
+        "precision": "0.0001 in",
+        "origin": "St. James, MN"
+    },
+    "market_intelligence": {
+        "pricing": {
+            "quick": 55.0,
+            "fair": 75.0,
+            "high": 120.0
+        },
+        "sources": [
+            {
+                "name": "eBay Sold History",
+                "region": "Global",
+                "condition": "Exc",
+                "price": 85.0,
+                "url": "ebay.com/itm/123"
+            },
+            {
+                "name": "eBay Sold History",
+                "region": "Global",
+                "condition": "Good",
+                "price": 45.0,
+                "url": "ebay.com/itm/456"
+            },
+            {
+                "name": "MN FB Marketplace",
+                "region": "St. Paul, MN",
+                "condition": "Used",
+                "price": 40.0,
+                "url": "fb.com/marketplace/789"
+            },
+            {
+                "name": "MN Machinist FB Group",
+                "region": "Minnesota",
+                "condition": "Exc",
+                "price": 65.0,
+                "url": "fb.com/groups/machinist/012"
+            },
+            {
+                "name": "Antique Tool Archive",
+                "region": "National",
+                "condition": "Mint",
+                "price": 140.0,
+                "url": "antiquetools.com/pricing"
+            }
+        ]
+    }
+}

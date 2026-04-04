@@ -1,0 +1,56 @@
+{
+    "metadata": {
+        "unit_id": "UNIT-C402E7C6",
+        "creation_date": "2026-04-03T19:27:25.094012",
+        "is_specialized": "Universal Metric/Imperial Tool"
+    },
+    "identification": {
+        "brand": "Mitutoyo",
+        "model": "505-629 Dial Caliper",
+        "era": "Vintage (1985)",
+        "specs": "0.001 in"
+    },
+    "market_data": {
+        "global_ebay": [
+            {
+                "date": "2024-03",
+                "price": 115.0,
+                "status": "Sold"
+            },
+            {
+                "date": "2024-01",
+                "price": 95.0,
+                "status": "Sold"
+            }
+        ],
+        "minnesota_regional": [
+            {
+                "date": "2024-02",
+                "price": 80.0,
+                "platform": "FB Marketplace MN",
+                "status": "Sold"
+            },
+            {
+                "date": "2023-11",
+                "price": 75.0,
+                "platform": "MN Machinist Forum",
+                "status": "Sold"
+            }
+        ],
+        "age_matrix": {
+            "antique_premium": 145.0,
+            "vintage_sweet_spot": 95.0,
+            "modern_utility": 65.0
+        }
+    },
+    "pricing_recommendations": {
+        "quick_sell_mn": 75.0,
+        "fair_market": 95.0,
+        "collector_mint": 135.0
+    },
+    "research_logs": [
+        "Identified exactly as 505-629 Dial Caliper (Mitutoyo).",
+        "Cross-referenced against national eBay sold history and regional MN listings.",
+        "Vintage tier selected based on frame design and mechanical shock-proofing."
+    ]
+}

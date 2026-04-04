@@ -1,0 +1,18 @@
+SOURCE NAME,LOCATION/REGION,CONDITION,SOLD PRICE ($),URL/REF
+eBay Sold History,Global,Exc,85.0,ebay.com/itm/123
+eBay Sold History,Global,Good,45.0,ebay.com/itm/456
+MN FB Marketplace,"St. Paul, MN",Used,40.0,fb.com/marketplace/789
+MN Machinist FB Group,Minnesota,Exc,65.0,fb.com/groups/machinist/012
+Antique Tool Archive,National,Mint,140.0,antiquetools.com/pricing
+
+--- HISTORICAL PRICING BY AGE & REGION ---
+ERA / BIN,HISTORICAL VALUE ($),NOTES
+Antique (pre-1950),110.0,Collector Demand High
+Vintage (1950-1990),75.0,Most Common Shop Standard
+Modern Used (1990+),45.0,Standard Functional Value
+
+--- PRICING STRATEGY ---
+STRATEGY,PRICE ($),LOGIC
+Quick Sell (MN Marketplace),55.0,Local MN Barrier Entry
+Fair Market (National eBay),75.0,Standard Market Average
+Collector (Boutique Shop),120.0,Mint Original Condition

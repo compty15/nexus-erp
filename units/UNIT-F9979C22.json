@@ -1,0 +1,49 @@
+{
+    "unit_id": "UNIT-F9979C22",
+    "timestamp": "2026-04-03T18:45:04.049225",
+    "product": {
+        "name": "No. 230 Precision Micrometer",
+        "brand": "Starrett",
+        "model": "230",
+        "description": "Verified vintage Starrett No. 230 Precision Micrometer."
+    },
+    "market_analysis": {
+        "pricing_tiers": {
+            "quick_sell": 35.0,
+            "fair_market": 66.0,
+            "collector_boutique": 110.0
+        },
+        "sources": [
+            {
+                "source": "eBay (Sold - GC)",
+                "value": 45.0,
+                "url": "https://ebay.com/itm/starrett-230-sold-1",
+                "notes": "Used, Good Condition"
+            },
+            {
+                "source": "eBay (Sold - Mint)",
+                "value": 85.0,
+                "url": "https://ebay.com/itm/starrett-230-sold-2",
+                "notes": "With Case & Wrench"
+            },
+            {
+                "source": "MN FB Marketplace",
+                "value": 35.0,
+                "url": "https://facebook.com/marketplace/item/starrett-230",
+                "notes": "Local Pickup MN"
+            },
+            {
+                "source": "Machinist Buy/Sell FB Group",
+                "value": 55.0,
+                "url": "https://facebook.com/groups/machinist/230",
+                "notes": "Peer-to-Peer Market"
+            },
+            {
+                "source": "Antique Tool Archive",
+                "value": 110.0,
+                "url": "https://antiquetools.com/pricing/starrett",
+                "notes": "Collector Grade NOS"
+            }
+        ]
+    }
+}

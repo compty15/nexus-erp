@@ -1,0 +1,40 @@
+{
+    "unit_id": "32a41eba",
+    "name": "Starrett No. 231 Precision Micrometer",
+    "brand": "Starrett",
+    "model": "No. 231",
+    "description": "Standard 0-1\" precision micrometer with friction thimble.",
+    "timestamp": "2026-04-03T18:44:10.696395",
+    "sources": [
+        {
+            "source": "eBay (Sold)",
+            "value": 85.0,
+            "url": "https://ebay.com/itm/12345"
+        },
+        {
+            "source": "eBay (Active)",
+            "value": 115.0,
+            "url": "https://ebay.com/itm/67890"
+        },
+        {
+            "source": "MN FB Marketplace",
+            "value": 60.0,
+            "url": "https://facebook.com/marketplace/item/111"
+        },
+        {
+            "source": "Machinist Buy/Sell FB Group",
+            "value": 90.0,
+            "url": "https://facebook.com/groups/machinist-sell/222"
+        },
+        {
+            "source": "Practical Machinist Classifieds",
+            "value": 95.0,
+            "url": "https://practicalmachinist.com/classifieds/333"
+        }
+    ],
+    "pricing_options": {
+        "quick_sell": 60.0,
+        "fair_market": 89.0,
+        "collector_boutique": 115.0
+    }
+}

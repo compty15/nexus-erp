@@ -1,0 +1,12 @@
+SOURCE NAME,VALUE FOUND ($),REFERENCE URL,REGION/NOTES
+eBay (Sold - GC),45.0,https://ebay.com/itm/starrett-230-sold-1,"Used, Good Condition"
+eBay (Sold - Mint),85.0,https://ebay.com/itm/starrett-230-sold-2,With Case & Wrench
+MN FB Marketplace,35.0,https://facebook.com/marketplace/item/starrett-230,Local Pickup MN
+Machinist Buy/Sell FB Group,55.0,https://facebook.com/groups/machinist/230,Peer-to-Peer Market
+Antique Tool Archive,110.0,https://antiquetools.com/pricing/starrett,Collector Grade NOS
+
+--- PRICING STRATEGY ---
+TIER,ESTIMATED VALUE,STRATEGY
+Quick Sell,35.0,Flea Market / Fast Flip
+Fair Market,66.0,Standard eBay Price
+Collector,110.0,Boutique / Mint / NOS

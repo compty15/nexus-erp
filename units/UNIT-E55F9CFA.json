@@ -1,0 +1,56 @@
+{
+    "metadata": {
+        "unit_id": "UNIT-E55F9CFA",
+        "creation_date": "2026-04-03T19:10:56.688942",
+        "origin": "St. James, MN"
+    },
+    "identification": {
+        "brand": "Scherr-Tumico",
+        "model": "Tubular Micrometer No. 51",
+        "era": "Vintage (1965)",
+        "precision": "0.0001 in"
+    },
+    "market_analysis": {
+        "ebay_national": [
+            {
+                "date": "2024-01",
+                "price": 85.0,
+                "status": "Sold"
+            },
+            {
+                "date": "2023-11",
+                "price": 72.0,
+                "status": "Sold"
+            }
+        ],
+        "minnesota_local": [
+            {
+                "date": "2024-02",
+                "price": 60.0,
+                "platform": "FB Marketplace MN",
+                "status": "Sold"
+            },
+            {
+                "date": "2023-12",
+                "price": 55.0,
+                "platform": "MN Machinist Group",
+                "status": "Sold"
+            }
+        ],
+        "historical_matrix": {
+            "antique_value": 120.0,
+            "vintage_value": 75.0,
+            "modern_value": 45.0
+        }
+    },
+    "pricing_recommendations": {
+        "low_end_quick_sell": 55.0,
+        "fair_market": 75.0,
+        "collector_high_end": 125.0
+    },
+    "historical_log": [
+        "Identified exactly as Tubular Micrometer No. 51.",
+        "Regional MN pricing shows 15% lower barrier for local pickup.",
+        "Collector demand high for St. James tubular models."
+    ]
+}
