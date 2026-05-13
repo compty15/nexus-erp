@@ -1,3 +1,5 @@
+'use client';
+
 import { Cpu, Zap, BrainCircuit, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useEngine, Engine } from '@/lib/engine-context';
