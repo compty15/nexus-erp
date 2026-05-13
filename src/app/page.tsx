@@ -157,6 +157,9 @@ export default function Home() {
                 <ItemCard 
                   item={{
                     ...item,
+                    name: item.name ?? 'Unknown Item',
+                    brand: item.brand ?? 'Unknown Brand',
+                    category: item.category ?? 'Uncategorized',
                     price: item.price_range ? `$${item.price_range.min} - $${item.price_range.max}` : 'Unknown',
                     cost: `$${item.cost_metadata?.last_scan_cost?.toFixed(2) || '0.00'}`,
                     totalCost: `$${item.cost_metadata?.total_scan_cost?.toFixed(2) || '0.00'}`,
