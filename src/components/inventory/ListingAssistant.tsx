@@ -6,7 +6,7 @@ import {
   Copy, 
   Check, 
   Store, 
-  Facebook, 
+  Share2, 
   ShoppingBag, 
   ShoppingCart,
   ExternalLink,
@@ -42,7 +42,7 @@ export default function ListingAssistant({ item, drafts }: ListingAssistantProps
 
   const platforms = [
     { id: 'ebay', icon: Store, label: 'eBay', color: 'bg-blue-600' },
-    { id: 'fb', icon: Facebook, label: 'Facebook', color: 'bg-blue-500' },
+    { id: 'fb', icon: Share2, label: 'Facebook', color: 'bg-blue-500' },
     { id: 'etsy', icon: ShoppingBag, label: 'Etsy', color: 'bg-orange-500' },
     { id: 'shopify', icon: ShoppingCart, label: 'Shopify', color: 'bg-green-600' }
   ];
