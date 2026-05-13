@@ -159,11 +159,11 @@ export default function Home() {
                     ...item,
                     cost: `$${item.cost_metadata?.last_scan_cost?.toFixed(2) || '0.00'}`,
                     totalCost: `$${item.cost_metadata?.total_scan_cost?.toFixed(2) || '0.00'}`,
-                    weight: item.weight_raw,
-                    length: item.length_in,
-                    width: item.width_in,
-                    height: item.height_in,
-                    image: item.image_refs?.[0] ? `/api/drive/view/${item.image_refs[0]}` : null
+                    weight: item.weight_raw ?? undefined,
+                    length: item.length_in ?? undefined,
+                    width: item.width_in ?? undefined,
+                    height: item.height_in ?? undefined,
+                    image: item.image_refs?.[0] || null
                   }} 
                 />
                 <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
