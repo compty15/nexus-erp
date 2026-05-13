@@ -98,20 +98,39 @@ export default function Home() {
             Secure, offline-ready metrology scanning. Powered by Gemini.
           </p>
           
-          <button 
-            onClick={triggerFileSelect}
-            className="group relative flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-bold text-black transition-all hover:bg-gray-200 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] active:scale-95"
-          >
-            <Camera className="h-5 w-5" />
-            Launch Scanner
-            <div className="absolute inset-0 -z-10 animate-pulse rounded-full bg-white/20 blur-xl group-hover:bg-white/40" />
-          </button>
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <button 
+              onClick={() => {
+                if (fileInputRef.current) {
+                  fileInputRef.current.setAttribute('capture', 'environment');
+                  fileInputRef.current.click();
+                }
+              }}
+              className="group relative flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-bold text-black transition-all hover:bg-gray-200 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] active:scale-95"
+            >
+              <Camera className="h-5 w-5" />
+              Direct Camera
+              <div className="absolute inset-0 -z-10 animate-pulse rounded-full bg-white/20 blur-xl group-hover:bg-white/40" />
+            </button>
+
+            <button 
+              onClick={() => {
+                if (fileInputRef.current) {
+                  fileInputRef.current.removeAttribute('capture');
+                  fileInputRef.current.click();
+                }
+              }}
+              className="group flex items-center gap-3 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-base font-bold text-white transition-all hover:bg-white/10 active:scale-95"
+            >
+              <History className="h-5 w-5" />
+              Photo Gallery
+            </button>
+          </div>
           
           <input 
             type="file" 
             accept="image/*" 
             multiple
-            capture="environment" 
             className="hidden" 
             ref={fileInputRef}
             onChange={handleFileSelect}
