@@ -32,6 +32,7 @@ interface ItemCardProps {
     length?: number;
     width?: number;
     height?: number;
+    image?: string | null;
   };
 }
 
