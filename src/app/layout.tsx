@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import { EngineProvider } from "@/lib/engine-context";
 import NotificationCenter from "@/components/ui/NotificationCenter";
+import Providers from "@/shared/lib/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,13 +29,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <EngineProvider>
-          <Header />
-          <main className="min-h-screen pb-20">
-            {children}
-          </main>
-          <NotificationCenter />
-        </EngineProvider>
+        <Providers>
+          <EngineProvider>
+            <Header />
+            <main className="min-h-screen pb-20">
+              {children}
+            </main>
+            <NotificationCenter />
+          </EngineProvider>
+        </Providers>
       </body>
     </html>
   );

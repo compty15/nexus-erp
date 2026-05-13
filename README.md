@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NEXUS ERP: Universal Inventory & Business Management
 
-## Getting Started
+NEXUS is a high-end, mobile-first ERP system designed for managing complex inventory—from precision metrology tools to vintage industrial equipment. It leverages Gemini AI for multi-stage item identification and logistics automation.
 
-First, run the development server:
+## 🚀 Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Intelligence Pipeline**: Two-stage identification using Gemini 1.5 Flash (Stage 1) and Pro (Stage 2).
+- **Logistics Hub**: Automated shipping weight/box buffering with Metric/Imperial toggles.
+- **Sales Ledger**: Internal P&L tracking, fee auto-calculation, and Time-on-Market analytics.
+- **Multi-Site Listing Assistant**: Sequential clipboard for rapid posting to eBay, FB Marketplace, Etsy, and Shopify.
+- **PWA Ready**: Installable on iPhone/Android for garage-mode reliability.
+- **Cloud Integration**: Stores high-res media directly in Google Drive to save on database costs.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📂 Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `/docs`: Implementation plans, task lists, and system walkthroughs.
+- `/supabase`: Database schema definitions and SQL migrations.
+- `/scripts`: Utility scripts for OAuth and refresh tokens.
+- `/src/lib`: Core logic for AI, Logistics, and Cloud integrations.
+- `/src/components`: Professional-grade UI components with Framer Motion animations.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Quick Start
 
-## Learn More
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Environment Setup**:
+   Configure `.env` with your Gemini, Supabase, and Google Cloud keys.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Database Initialization**:
+   Run the SQL in `/supabase/schema.sql` within your Supabase SQL Editor.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **Launch**:
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
+## 🔒 Security
+Sensitive API keys are stored in `.env` and are excluded from version control via `.gitignore`. The system is designed to use client-side encryption for marketplace tokens in future updates.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+Built by Antigravity AI for professional garage environments.
