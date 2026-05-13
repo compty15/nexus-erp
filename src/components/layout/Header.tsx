@@ -52,13 +52,24 @@ export default function Header() {
           <TaskCenter />
           <div className="hidden items-center gap-4 md:flex">
             <div className="flex flex-col items-end">
-            <span className="text-[10px] uppercase text-gray-500">System Health</span>
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-16 overflow-hidden rounded-full bg-[#333]">
-                <div className="h-full w-3/4 bg-emerald-500" />
+              <span className="text-[10px] uppercase text-gray-500">System Health</span>
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-16 overflow-hidden rounded-full bg-[#333]">
+                  <div className="h-full w-3/4 bg-emerald-500" />
+                </div>
+                <span className="text-xs font-mono text-emerald-500">92%</span>
               </div>
-              <span className="text-xs font-mono text-emerald-500">92%</span>
             </div>
+            <button
+              onClick={async () => {
+                const { supabase } = await import('@/shared/lib/supabase');
+                await supabase.auth.signOut();
+                window.location.href = '/login';
+              }}
+              className="rounded-lg border border-[#333] px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-[#333] transition-colors"
+            >
+              Sign out
+            </button>
           </div>
         </div>
       </div>

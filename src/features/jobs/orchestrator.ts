@@ -29,29 +29,27 @@ export class JobOrchestrator {
       // Sync to Supabase to track across devices
       await supabase.from('jobs').insert(newJob);
 
-      // 2. Compress images client-side
+      // 2. Upload directly to Supabase Storage (bypassing Vercel limits)
       store.updateJob(newJob.id, { status: 'processing' });
       await supabase.from('jobs').update({ status: 'processing' }).eq('id', newJob.id);
 
-      const compressedFiles = await Promise.all(files.map(compressImage));
+      const { uploadToStorage } = await import('@/shared/lib/upload');
       
-      // Convert to base64 for the API payload (temporary until we do direct-to-storage)
-      const base64Images = await Promise.all(
-        compressedFiles.map(async (file) => ({
-          data: await fileToBase64(file),
-          mimeType: file.type,
-          name: file.name
-        }))
+      const storageUrls = await Promise.all(
+        files.map(async (file) => {
+          // Optional: we can still compress client-side here if needed, but for OCR we upload raw
+          return await uploadToStorage(file, 'raw_images');
+        })
       );
 
-      // 3. Call the Next.js API route to trigger Gemini & Storage
-      // By compressing first, we drastically reduce the payload size and time.
+      // 3. Call the Next.js API route to trigger Gemini ONLY
+      // Send the public URLs instead of massive base64 strings
       const response = await fetch('/api/inventory/scan-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           jobId: newJob.id,
-          images: base64Images,
+          imageUrls: storageUrls,
           branchId,
           model
         })

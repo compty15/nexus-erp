@@ -106,3 +106,25 @@ INSERT INTO public.model_stats (model_id) VALUES
 -- Indexes
 CREATE INDEX idx_jobs_status ON public.jobs(status);
 CREATE INDEX idx_jobs_type ON public.jobs(type);
+
+-- 7. Supabase Storage (Direct-to-Cloud Uploads)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('raw_images', 'raw_images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- RLS: Allow public uploads (for now, but should be restricted to authenticated users)
+CREATE POLICY "Public Uploads"
+ON storage.objects FOR INSERT TO public
+WITH CHECK (bucket_id = 'raw_images');
+
+CREATE POLICY "Public View"
+ON storage.objects FOR SELECT TO public
+USING (bucket_id = 'raw_images');
+
+-- Enable RLS on core tables
+ALTER TABLE public.inventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
+
+-- Temporary public policies while auth is being configured
+CREATE POLICY "Public full access to inventory" ON public.inventory FOR ALL USING (true);
+CREATE POLICY "Public full access to jobs" ON public.jobs FOR ALL USING (true);
