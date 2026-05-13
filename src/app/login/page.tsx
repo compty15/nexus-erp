@@ -1,79 +1,57 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/shared/lib/supabase';
-import { Activity, Lock } from 'lucide-react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { login } from './actions';
+import { Activity, Lock, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
-  useEffect(() => {
-    // If the user is already logged in, skip the login page
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push('/');
-      }
-    };
-    checkUser();
-  }, [router]);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError(null);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setError(error.message);
+    
+    const result = await login(formData);
+    
+    if (result?.error) {
+      setError(result.error);
       setLoading(false);
-    } else {
-      router.refresh();
-      setTimeout(() => router.push('/'), 100);
     }
-  };
+    // If successful, the server action will redirect automatically
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a0a0a] px-4">
-      <div className="w-full max-w-md space-y-8 rounded-2xl border border-[#333] bg-[#1a1a1a] p-8 shadow-2xl">
+      <div className="w-full max-w-md space-y-8 rounded-3xl border border-[#222] bg-[#111] p-10 shadow-2xl">
         <div className="flex flex-col items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-500/20">
-            <Activity className="h-8 w-8 text-white" />
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-blue-600 shadow-2xl shadow-blue-500/20">
+            <Activity className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-white">NEXUS ERP</h2>
-          <p className="mt-2 text-sm text-gray-400">Sign in to access your garage operations</p>
+          <h2 className="text-4xl font-black tracking-tight text-white">NEXUS ERP</h2>
+          <p className="mt-3 text-sm font-medium text-gray-500">Inventory Intelligence & Commerce</p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          <div className="space-y-4 rounded-md shadow-sm">
-            <div>
-              <label className="sr-only" htmlFor="email-address">
-                Email address
+        <form action={handleSubmit} className="mt-10 space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-1" htmlFor="email">
+                Email Address
               </label>
               <input
-                id="email-address"
+                id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                className="relative block w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm transition-colors"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                className="block w-full rounded-2xl border border-[#222] bg-[#0a0a0a] px-5 py-4 text-white placeholder-gray-600 focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all"
+                placeholder="name@example.com"
               />
             </div>
-            <div>
-              <label className="sr-only" htmlFor="password">
-                Password
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-1" htmlFor="password">
+                Security Key
               </label>
               <input
                 id="password"
@@ -81,29 +59,38 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="relative block w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm transition-colors"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                className="block w-full rounded-2xl border border-[#222] bg-[#0a0a0a] px-5 py-4 text-white placeholder-gray-600 focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all"
+                placeholder="••••••••"
               />
             </div>
           </div>
 
-          {error && <div className="text-sm text-red-500 text-center">{error}</div>}
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative flex w-full justify-center rounded-lg border border-transparent bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#1a1a1a] disabled:opacity-50 transition-all"
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 rounded-2xl bg-red-500/10 p-4 text-sm font-medium text-red-400 border border-red-500/20"
             >
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <Lock className="h-5 w-5 text-blue-500 group-hover:text-blue-400 transition-colors" aria-hidden="true" />
-              </span>
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
+              <AlertCircle className="h-5 w-5 flex-shrink-0" />
+              {error}
+            </motion.div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="group relative flex w-full justify-center rounded-2xl bg-white px-6 py-4 text-sm font-black text-black transition-all hover:bg-gray-200 active:scale-[0.98] disabled:opacity-50"
+          >
+            <span className="absolute inset-y-0 left-0 flex items-center pl-4">
+              <Lock className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors" />
+            </span>
+            {loading ? 'Authorizing...' : 'Enter Nexus'}
+          </button>
         </form>
+        
+        <p className="text-center text-[10px] text-gray-600 font-medium">
+          Secure Cloud Deployment via Vercel & Supabase
+        </p>
       </div>
     </div>
   );
