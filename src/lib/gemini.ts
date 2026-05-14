@@ -120,11 +120,11 @@ export async function flashScan(images: { data: string; mimeType: string }[], mo
     generationConfig: { responseMimeType: "application/json" }
   });
   
-  const prompt = `Perform a detailed analysis of this tool/item based on the provided images. 
-  Extract as much deep metadata as possible to avoid needing a secondary scan.
+  const prompt = `Perform a detailed analysis of this item based on the provided media (images, videos, or PDFs). 
+  Extract as much deep metadata as possible. For videos, analyze the motion and condition. For PDFs, extract technical specifications or certifications.
   Generate 4 PLATFORM DRAFTS for listing: ebay, fb, etsy, and shopify.
   Include a "confidence" score (0.0 to 1.0). If confidence is below 0.8 or critical info is missing, set "needs_pro" to true.
-  Estimate the physical weight in lbs and size in inches.
+  Estimate the physical weight in lbs and size in inches if visible or known.
   
   Format as JSON: { 
     "name": "", 
@@ -169,9 +169,10 @@ export async function deepDive(images: { data: string; mimeType: string }[], mod
     generationConfig: { responseMimeType: "application/json" }
   });
   
-  const prompt = `Perform high-precision analysis on these images:
-  1. Extract ALL serial numbers.
-  2. Interpret any visible metrology readings.
+  const prompt = `Perform high-precision analysis on this media:
+  1. Extract ALL serial numbers, model names, and technical specs.
+  2. Interpret any visible metrology readings or data tables (especially from PDFs).
+  3. If video, report on the mechanical state or functional integrity.
   
   Generate 4 PLATFORM DRAFTS for listing:
   - ebay: Technical, authoritative, keyword-dense.
