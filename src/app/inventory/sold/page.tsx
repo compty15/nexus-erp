@@ -49,7 +49,8 @@ export default function SoldPage() {
                   category: item.category ?? 'Uncategorized',
                   price: item.price_range ? `$${item.price_range.min} - $${item.price_range.max}` : 'Unknown',
                   cost: `$${item.cost_metadata?.last_scan_cost?.toFixed(2) || '0.00'}`,
-                  image: item.image_refs?.[0] || null
+                  image: item.image_refs?.[0] || null,
+                  image_refs: item.image_refs || []
                 }} 
               />
             </motion.div>

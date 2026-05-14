@@ -44,6 +44,7 @@ interface ItemCardProps {
     width?: number;
     height?: number;
     image?: string | null;
+    image_refs?: string[];
   };
 }
 
@@ -72,10 +73,10 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
     }
   };
 
-  const handleRemoveImage = () => {
-    if (!item?.id || !item?.image) return;
+  const handleRemoveImage = (imageUrl: string) => {
+    if (!item?.id || !imageUrl) return;
     if (confirm('Are you sure you want to remove this photo?')) {
-      removeImageMutation.mutate({ id: item.id, imageUrl: item.image }, {
+      removeImageMutation.mutate({ id: item.id, imageUrl }, {
         onSuccess: () => {
           addNotification({ type: 'success', title: 'Photo Removed', message: 'The image has been deleted.' });
         },
@@ -161,31 +162,40 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
           </div>
         </div>
 
-        {/* Item Image */}
-        {item?.image && (
+        {/* Item Images Gallery */}
+        {(item?.image_refs && item.image_refs.length > 0) ? (
+          <div className="relative flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {item.image_refs.map((imgUrl, idx) => (
+              <div key={idx} className="relative h-40 w-32 shrink-0 overflow-hidden rounded-xl border border-[#222] bg-[#0a0a0a] group/img">
+                <img 
+                  src={imgUrl} 
+                  alt={`${item.name} ${idx + 1}`} 
+                  className="h-full w-full object-cover opacity-90 transition-opacity group-hover/img:opacity-100"
+                />
+                {item?.id && (
+                  <button
+                    onClick={() => handleRemoveImage(imgUrl)}
+                    disabled={removeImageMutation.isPending}
+                    className="absolute top-2 right-2 p-1 rounded bg-black/50 text-white opacity-0 group-hover/img:opacity-100 transition-all hover:bg-red-500/80 backdrop-blur-sm"
+                    title="Remove photo"
+                  >
+                    {removeImageMutation.isPending ? (
+                      <Activity className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Trash className="h-3 w-3" />
+                    )}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : item?.image && (
           <div className="relative h-40 w-full overflow-hidden rounded-xl border border-[#222] bg-[#0a0a0a] group/img">
-            {/* Using standard img for now since we don't have domains configured in next.config.js for next/image */}
             <img 
               src={item.image} 
               alt={item.name} 
               className="h-full w-full object-cover opacity-90 transition-opacity group-hover/img:opacity-100"
             />
-            {item?.id && (
-              <button
-                onClick={handleRemoveImage}
-                disabled={removeImageMutation.isPending}
-                className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/50 text-white opacity-0 group-hover/img:opacity-100 transition-all hover:bg-red-500/80 backdrop-blur-sm"
-                title="Remove photo"
-              >
-                {removeImageMutation.isPending ? (
-                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-                    <Activity className="h-4 w-4" />
-                  </motion.div>
-                ) : (
-                  <Trash className="h-4 w-4" />
-                )}
-              </button>
-            )}
           </div>
         )}
 

@@ -35,10 +35,7 @@ export async function POST(req: NextRequest) {
       imageUrls.map(async (url: string) => {
         const res = await fetch(url);
         const arrayBuffer = await res.arrayBuffer();
-        const base64Data = btoa(
-          new Uint8Array(arrayBuffer)
-            .reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
+        const base64Data = Buffer.from(arrayBuffer).toString('base64');
         return {
           data: base64Data,
           mimeType: res.headers.get('content-type') || 'image/jpeg',

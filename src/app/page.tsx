@@ -224,7 +224,8 @@ export default function Home() {
                           length: item.length_in ?? undefined,
                           width: item.width_in ?? undefined,
                           height: item.height_in ?? undefined,
-                          image: item.image_refs?.[0] || null
+                          image: item.image_refs?.[0] || null,
+                          image_refs: item.image_refs || []
                         }} 
                       />
                     </div>
