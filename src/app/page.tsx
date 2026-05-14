@@ -8,7 +8,8 @@ import {
   Activity, 
   ArrowUpRight, 
   Camera, 
-  History
+  History,
+  Sparkles
 } from 'lucide-react';
 import ItemCard from '@/components/ui/ItemCard';
 import { useEngine } from '@/lib/engine-context';
@@ -19,6 +20,7 @@ import { useQueueStore } from '@/shared/lib/store';
 import MarkAsSoldModal from '@/components/inventory/MarkAsSoldModal';
 import ListingAssistant from '@/components/inventory/ListingAssistant';
 import ItemDetailsModal from '@/components/inventory/ItemDetailsModal';
+import AddByDescriptionModal from '@/components/inventory/AddByDescriptionModal';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -56,7 +58,7 @@ export default function Home() {
   
   // Local UI State for Modals
   const [activeItem, setActiveItem] = React.useState<any>(null);
-  const [modalMode, setModalMode] = React.useState<'none' | 'sold' | 'list' | 'details'>('none');
+  const [modalMode, setModalMode] = React.useState<'none' | 'sold' | 'list' | 'details' | 'quick-add'>('none');
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     // ... (rest of handleFileSelect remains same)
@@ -134,6 +136,14 @@ export default function Home() {
               <History className="h-4 w-4" />
               Load Archive
             </button>
+
+            <button 
+              onClick={() => setModalMode('quick-add')}
+              className="group flex items-center gap-3 rounded-full border border-blue-500/30 bg-blue-500/10 px-10 py-5 text-xs font-black uppercase tracking-widest text-blue-400 transition-all hover:bg-blue-500/20 hover:border-blue-500/50 active:scale-95 backdrop-blur-md shadow-[0_0_40px_rgba(59,130,246,0.1)]"
+            >
+              <Sparkles className="h-4 w-4" />
+              Quick Add
+            </button>
           </div>
           
           <input 
@@ -144,6 +154,38 @@ export default function Home() {
             ref={fileInputRef}
             onChange={handleFileSelect}
           />
+        </div>
+      </section>
+
+      {/* Dashboard Shortcuts */}
+      <section className="mb-12">
+        <h2 className="mb-6 text-[10px] font-black uppercase tracking-[0.4em] text-titanium-600 px-2">Navigation Nodes</h2>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[
+            { label: 'Sales Dashboard', href: '/inventory/sold', icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-400/5', border: 'border-emerald-400/20' },
+            { label: 'Financial Ledger', href: '/ledger', icon: Activity, color: 'text-blue-400', bg: 'bg-blue-400/5', border: 'border-blue-400/20' },
+            { label: 'Fulfillment', href: '/shipping', icon: Package, icon2: ArrowUpRight, color: 'text-purple-400', bg: 'bg-purple-400/5', border: 'border-purple-400/20' },
+            { label: 'System Configuration', href: '/settings', icon: Sparkles, color: 'text-amber-400', bg: 'bg-amber-400/5', border: 'border-amber-400/20' },
+          ].map((node) => (
+            <motion.a
+              key={node.href}
+              href={node.href}
+              whileHover={{ y: -5, backgroundColor: 'rgba(255,255,255,0.03)' }}
+              whileTap={{ scale: 0.98 }}
+              className={`flex flex-col gap-4 rounded-3xl border ${node.border} ${node.bg} p-6 transition-all duration-300 backdrop-blur-sm group`}
+            >
+              <div className="flex items-center justify-between">
+                <div className={`rounded-xl bg-black/40 p-2 border border-white/5`}>
+                  <node.icon className={`h-5 w-5 ${node.color}`} />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-titanium-600 group-hover:text-white transition-colors" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white">{node.label}</p>
+                <p className="mt-1 text-[8px] font-bold text-titanium-500 uppercase tracking-tighter">Access Module</p>
+              </div>
+            </motion.a>
+          ))}
         </div>
       </section>
 
@@ -208,43 +250,47 @@ export default function Home() {
                           <div className="mb-4 rounded-full bg-red-500/10 p-3">
                             <Activity className="h-8 w-8 text-red-500" />
                           </div>
-                          <p className="text-sm font-bold text-red-400 text-center">Scan Failed</p>
-                          <p className="text-[10px] text-red-300/60 mt-1 text-center line-clamp-2 px-2">
-                            {job.error || 'Unknown Error'}
+                          <p className="text-sm font-bold text-red-400 text-center">Operation Failed</p>
+                          <p className="text-[10px] text-red-300/60 mt-1 text-center line-clamp-3 px-2 leading-relaxed">
+                            {job.error || 'The intelligence stream was interrupted.'}
                           </p>
-                          <button 
-                            onClick={() => useQueueStore.getState().removeJob(job.id)}
-                            className="mt-4 rounded-full bg-red-500/20 px-4 py-2 text-[10px] font-bold text-red-400 hover:bg-red-500/30 transition-all"
-                          >
-                            Clear Error
-                          </button>
                           
                           <div className="mt-6 w-full border-t border-white/5 pt-4">
-                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-titanium-500 mb-2 text-center">Retry Intelligence Stream:</p>
-                            <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
+                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-titanium-500 mb-3 text-center italic">Select Recovery Engine:</p>
+                            <div className="grid grid-cols-2 gap-2">
                               {[
-                                { id: 'flash', label: 'FLS-2.5' },
-                                { id: 'pro-2.5', label: 'PRO-2.5' },
-                                { id: 'flash-3.0', label: 'FLS-3.0' },
-                                { id: 'pro-3.0', label: 'PRO-3.0' },
-                                { id: 'pro-3.1', label: 'PRO-3.1' },
+                                { id: 'flash', label: 'FLS-2.5', speed: 'FASTEST' },
+                                { id: 'pro-2.5', label: 'PRO-2.5', speed: 'SMART' },
+                                { id: 'flash-3.0', label: 'FLS-3.0', speed: 'NEWEST' },
+                                { id: 'pro-3.0', label: 'PRO-3.0', speed: 'ELITE' },
+                                { id: 'pro-3.1', label: 'PRO-3.1', speed: 'MAX' },
                               ].map((m) => (
                                 <button
                                   key={m.id}
                                   onClick={() => JobOrchestrator.retryInventoryScan(job.id, m.id, 'BRANCH_A_PROD')}
-                                  className="whitespace-nowrap rounded-lg bg-black/60 border border-white/5 px-2.5 py-1.5 text-[8px] font-black uppercase tracking-widest text-titanium-400 hover:text-white hover:border-white/20 transition-all"
+                                  className="flex flex-col items-center rounded-xl bg-white/5 border border-white/5 py-2 px-1 hover:bg-white/10 hover:border-white/20 transition-all active:scale-95"
                                 >
-                                  {m.label}
+                                  <span className="text-[10px] font-black text-white">{m.label}</span>
+                                  <span className="text-[7px] font-bold text-titanium-600 uppercase">{m.speed}</span>
                                 </button>
                               ))}
                             </div>
+                            
+                            <button 
+                              onClick={() => useQueueStore.getState().removeJob(job.id)}
+                              className="mt-4 w-full rounded-xl bg-red-500/10 py-2 text-[8px] font-black uppercase tracking-[0.2em] text-red-400/60 hover:text-red-400 transition-all"
+                            >
+                              Abandon Task
+                            </button>
                           </div>
                         </>
                       ) : (
                         <>
                           <Activity className="h-10 w-10 text-blue-500 mb-4" />
                           <p className="text-sm font-medium text-blue-400 text-center">
-                            Processing {job.payload?.fileCount} item(s)...
+                            {job.type === 'text_extrapolation' 
+                              ? 'Extrapolating item data...' 
+                              : `Processing ${job.payload?.fileCount} item(s)...`}
                           </p>
                           <p className="text-[10px] text-blue-400/50 mt-1 uppercase tracking-widest font-black">
                             {job.status}
@@ -335,6 +381,11 @@ export default function Home() {
       {modalMode === 'details' && activeItem && (
         <ItemDetailsModal 
           item={activeItem} 
+          onClose={() => setModalMode('none')} 
+        />
+      )}
+      {modalMode === 'quick-add' && (
+        <AddByDescriptionModal 
           onClose={() => setModalMode('none')} 
         />
       )}

@@ -209,3 +209,101 @@ export async function deepDive(images: { data: string; mimeType: string }[], mod
     usage: response.usageMetadata
   };
 }
+
+/**
+ * Stage 3: Text Extrapolation
+ * Creates a structured item record from raw text description.
+ */
+export async function extrapolateItemFromText(description: string, modelType: ModelType = "flash") {
+  const model = genAI.getGenerativeModel({ 
+    model: MODEL_MAP[modelType],
+    generationConfig: { responseMimeType: "application/json" }
+  });
+  
+  const prompt = `Perform a detailed analysis of this item based on the provided text description.
+  Extrapolate and generate structured metadata.
+  Generate 4 PLATFORM DRAFTS for listing: ebay, fb, etsy, and shopify.
+  Include a "confidence" score (0.0 to 1.0) based on how detailed the input text is.
+  Estimate the physical weight in lbs and size in inches based on common knowledge for this type of item if not specified.
+  
+  Description provided: "${description}"
+  
+  Format as JSON: { 
+    "name": "", 
+    "category": "", 
+    "brand": "", 
+    "model_number": "",
+    "quantity": 1,
+    "short_description": "",
+    "dimensions": "",
+    "estimated_weight_lbs": 0.0,
+    "materials": "",
+    "price_range": {"min": 0, "max": 0}, 
+    "condition": "", 
+    "confidence": 0.0, 
+    "needs_pro": false,
+    "drafts": {
+      "ebay": { "title": "", "description": "", "specs": "" },
+      "fb": { "title": "", "description": "", "specs": "" },
+      "etsy": { "title": "", "description": "", "specs": "" },
+      "shopify": { "title": "", "description": "", "specs": "" }
+    }
+  }`;
+
+  const result = await model.generateContent([prompt]);
+
+  const response = await result.response;
+  return {
+    data: safeParseJSON(response.text()),
+    usage: response.usageMetadata
+  };
+}
+
+/**
+ * Stage 4: Metadata Adjustment
+ * Refines drafts and titles based on manual user edits to core fields.
+ */
+export async function adjustItemMetadata(currentItem: any, updates: any, modelType: ModelType = "flash") {
+  const model = genAI.getGenerativeModel({ 
+    model: MODEL_MAP[modelType],
+    generationConfig: { responseMimeType: "application/json" }
+  });
+  
+  const prompt = `Refine the listing intelligence for this item based on manual user updates.
+  The user has edited some fields. Please update the platform drafts (ebay, fb, etsy, shopify) 
+  and other metadata to be consistent with these new values.
+  
+  CURRENT DATA:
+  ${JSON.stringify(currentItem, null, 2)}
+  
+  USER UPDATES:
+  ${JSON.stringify(updates, null, 2)}
+  
+  Generate updated PLATFORM DRAFTS. Keep any technical specs that are still valid.
+  
+  Format as JSON: { 
+    "name": "", 
+    "category": "", 
+    "brand": "", 
+    "model_number": "",
+    "short_description": "",
+    "dimensions": "",
+    "materials": "",
+    "price_range": {"min": 0, "max": 0}, 
+    "condition": "", 
+    "drafts": {
+      "ebay": { "title": "", "description": "", "specs": "" },
+      "fb": { "title": "", "description": "", "specs": "" },
+      "etsy": { "title": "", "description": "", "specs": "" },
+      "shopify": { "title": "", "description": "", "specs": "" }
+    }
+  }`;
+
+  const result = await model.generateContent([prompt]);
+
+  const response = await result.response;
+  return {
+    data: safeParseJSON(response.text()),
+    usage: response.usageMetadata
+  };
+}

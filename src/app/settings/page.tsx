@@ -10,7 +10,9 @@ import {
   Save, 
   RotateCcw,
   ShieldCheck,
-  Smartphone
+  Smartphone,
+  UserPlus,
+  Share2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useNotifications } from '@/lib/notifications';
@@ -177,6 +179,36 @@ export default function SettingsPage() {
                 />
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* User Invitations */}
+        <section className="rounded-3xl border border-[#222] bg-[#111] p-8">
+          <div className="mb-6 flex items-center gap-3">
+            <UserPlus className="h-5 w-5 text-purple-400" />
+            <h2 className="text-lg font-bold text-white">User Invitations</h2>
+          </div>
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex-1">
+              <p className="text-sm text-gray-400 leading-relaxed">
+                Invite friends or team members to join your Nexus environment. Each new user establishes their own intelligence node within the network.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/signup`;
+                navigator.clipboard.writeText(url);
+                addNotification({
+                  type: 'success',
+                  title: 'Link Copied',
+                  message: 'Invite link copied to clipboard. Share it with your friend!'
+                });
+              }}
+              className="flex items-center gap-3 rounded-2xl bg-purple-600/10 border border-purple-500/20 px-8 py-4 text-xs font-black uppercase tracking-widest text-purple-400 hover:bg-purple-600/20 transition-all active:scale-95 whitespace-nowrap"
+            >
+              <Share2 className="h-4 w-4" />
+              Copy Invite Link
+            </button>
           </div>
         </section>
 

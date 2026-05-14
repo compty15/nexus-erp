@@ -126,58 +126,108 @@ export default function LedgerPage() {
           </h2>
           <button className="flex items-center gap-2 text-xs text-gray-500 hover:text-white transition-colors">
             <Filter className="h-4 w-4" />
-            Filter By Platform
+            <span className="hidden sm:inline">Filter By Platform</span>
           </button>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-[#222] text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                <th className="px-6 py-4">Item</th>
-                <th className="px-6 py-4">Platform</th>
-                <th className="px-6 py-4">Sale Price</th>
-                <th className="px-6 py-4">Proceeds</th>
-                <th className="px-6 py-4">P&L</th>
-                <th className="px-6 py-4">Sold Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#222]">
-              {soldItems.map((item) => {
-                const profit = (item.sold_proceeds || 0) - (item.cost_metadata?.total_scan_cost || 0);
-                return (
-                  <tr key={item.id} className="hover:bg-[#1a1a1a] transition-colors group">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="text-sm font-bold text-white">{item.name}</p>
-                        <p className="text-[10px] text-gray-500">{item.brand || 'No Brand'}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-block rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter ${
-                        item.marketplace_source === 'ebay' ? 'bg-blue-600/10 text-blue-400' :
-                        item.marketplace_source === 'etsy' ? 'bg-orange-600/10 text-orange-400' :
-                        'bg-emerald-600/10 text-emerald-400'
-                      }`}>
-                        {item.marketplace_source}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-bold text-white">${item.sold_price?.toFixed(2)}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-emerald-400">${item.sold_proceeds?.toFixed(2)}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 text-sm font-bold text-white">
-                        {profit >= 0 ? <TrendingUp className="h-3 w-3 text-emerald-500" /> : <TrendingDown className="h-3 w-3 text-red-500" />}
+        <div className="p-4 sm:p-0">
+          {/* Desktop Table View */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-[#222] text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                  <th className="px-6 py-4">Item</th>
+                  <th className="px-6 py-4">Platform</th>
+                  <th className="px-6 py-4">Sale Price</th>
+                  <th className="px-6 py-4">Proceeds</th>
+                  <th className="px-6 py-4">P&L</th>
+                  <th className="px-6 py-4">Sold Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#222]">
+                {soldItems.map((item) => {
+                  const profit = (item.sold_proceeds || 0) - (item.cost_metadata?.total_scan_cost || 0);
+                  return (
+                    <tr key={item.id} className="hover:bg-[#1a1a1a] transition-colors group">
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className="text-sm font-bold text-white">{item.name}</p>
+                          <p className="text-[10px] text-gray-500">{item.brand || 'No Brand'}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-block rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter ${
+                          item.marketplace_source === 'ebay' ? 'bg-blue-600/10 text-blue-400' :
+                          item.marketplace_source === 'etsy' ? 'bg-orange-600/10 text-orange-400' :
+                          'bg-emerald-600/10 text-emerald-400'
+                        }`}>
+                          {item.marketplace_source}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-bold text-white">${item.sold_price?.toFixed(2)}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-emerald-400">${item.sold_proceeds?.toFixed(2)}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1 text-sm font-bold text-white">
+                          {profit >= 0 ? <TrendingUp className="h-3 w-3 text-emerald-500" /> : <TrendingDown className="h-3 w-3 text-red-500" />}
+                          ${profit.toFixed(2)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-[10px] text-gray-500">
+                        {new Date(item.sold_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="grid gap-4 sm:hidden">
+            {soldItems.map((item) => {
+              const profit = (item.sold_proceeds || 0) - (item.cost_metadata?.total_scan_cost || 0);
+              return (
+                <div key={item.id} className="rounded-2xl border border-[#222] bg-[#0a0a0a] p-4 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm font-bold text-white leading-tight">{item.name}</p>
+                      <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">{item.brand || 'No Brand'}</p>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold uppercase tracking-tighter ${
+                      item.marketplace_source === 'ebay' ? 'bg-blue-600/10 text-blue-400' :
+                      item.marketplace_source === 'etsy' ? 'bg-orange-600/10 text-orange-400' :
+                      'bg-emerald-600/10 text-emerald-400'
+                    }`}>
+                      {item.marketplace_source}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#222]">
+                    <div>
+                      <p className="text-[7px] font-black uppercase tracking-widest text-gray-600 mb-1">Sale</p>
+                      <p className="text-xs font-bold text-white">${item.sold_price?.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[7px] font-black uppercase tracking-widest text-gray-600 mb-1">Net</p>
+                      <p className="text-xs font-bold text-emerald-400">${item.sold_proceeds?.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[7px] font-black uppercase tracking-widest text-gray-600 mb-1">P&L</p>
+                      <div className="flex items-center gap-1 text-xs font-bold text-white">
+                        {profit >= 0 ? <TrendingUp className="h-2 w-2 text-emerald-500" /> : <TrendingDown className="h-2 w-2 text-red-500" />}
                         ${profit.toFixed(2)}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 text-[10px] text-gray-500">
-                      {new Date(item.sold_at).toLocaleDateString()}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+                  
+                  <p className="text-[8px] text-gray-600 text-right uppercase tracking-widest pt-2 border-t border-[#222]">
+                    {new Date(item.sold_at).toLocaleDateString()}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
           {soldItems.length === 0 && (
             <div className="p-20 text-center">
               <p className="text-sm text-gray-500 italic">No sales recorded yet.</p>

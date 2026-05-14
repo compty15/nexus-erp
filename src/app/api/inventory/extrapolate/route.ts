@@ -1,42 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/shared/lib/supabase-server';
-import { flashScan, calculateBurnRate } from '@/lib/gemini';
+import { extrapolateItemFromText, calculateBurnRate, ModelType } from '@/lib/gemini';
 
-// 🚀 Standard Node.js runtime for better stability with large images and long AI calls
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await req.json();
-    const { jobId, imageUrls, branchId, model } = body;
+    const { jobId, description, branchId, model } = body;
 
-    if (!imageUrls || imageUrls.length === 0) {
-      return NextResponse.json({ error: 'No images provided' }, { status: 400 });
+    if (!description) {
+      return NextResponse.json({ error: 'No description provided' }, { status: 400 });
     }
 
-    // 1. FETCH FROM SUPABASE STORAGE
-    // We get the raw bytes from the public URLs to feed to Gemini
-    const mediaParts = await Promise.all(
-      imageUrls.map(async (url: string) => {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Failed to fetch media from ${url}`);
-        const arrayBuffer = await res.arrayBuffer();
-        // Convert to base64 for Gemini API inlineData
-        const base64Data = Buffer.from(arrayBuffer).toString('base64');
-        return {
-          data: base64Data,
-          mimeType: res.headers.get('content-type') || 'application/octet-stream',
-        };
-      })
-    );
+    // 1. AI EXTRAPOLATION
+    const aiResult = await extrapolateItemFromText(description, model as ModelType);
+    const scanCost = calculateBurnRate(model as ModelType, aiResult.usage);
 
-    // 2. AI IDENTIFICATION
-    const aiResult = await flashScan(mediaParts, model);
-    const scanCost = calculateBurnRate(model, aiResult.usage);
-
-    // 3. DATABASE INSERT
-    // Note: We use the Supabase Storage URLs (imageUrls) instead of Drive IDs
+    // 2. DATABASE INSERT
     const { data: item, error: invError } = await supabase
       .from('inventory')
       .insert({
@@ -46,20 +28,21 @@ export async function POST(req: NextRequest) {
         category: aiResult.data.category,
         price_range: aiResult.data.price_range || { min: 0, max: 0, currency: 'USD' },
         weight_raw: aiResult.data.estimated_weight_lbs || 0,
-        image_refs: imageUrls,
+        image_refs: [], // No images for text-only extrapolation yet
         cost_metadata: {
           last_scan_cost: scanCost,
           total_scan_cost: scanCost,
         },
         status: aiResult.data.needs_pro ? 'needs_review' : 'identified',
         metadata: {
+          input_description: description,
           usage: aiResult.usage,
           confidence: aiResult.data.confidence,
           needs_pro: aiResult.data.needs_pro,
           drafts: aiResult.data.drafts || {},
           scan_history: [{
             timestamp: new Date().toISOString(),
-            model: 'gemini-2.5-flash',
+            model: model || 'gemini-2.5-flash',
             data: aiResult.data
           }]
         }
@@ -69,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     if (invError) throw invError;
 
-    // 4. Update Job Status
+    // 3. Update Job Status
     const resultPayload = { itemId: item.id, ai_data: aiResult.data, cost: scanCost };
     await supabase.from('jobs').update({
       status: 'completed',
@@ -79,7 +62,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(resultPayload);
 
   } catch (error: any) {
-    console.error('API /scan-v2 Error:', error);
+    console.error('API /extrapolate Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

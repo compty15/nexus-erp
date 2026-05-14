@@ -10,7 +10,6 @@ import {
   AlertCircle, 
   Tag, 
   Clock, 
-  Scale, 
   Box, 
   ArrowUpRight, 
   ShoppingCart,
@@ -18,12 +17,16 @@ import {
   Activity,
   BrainCircuit,
   Trash,
-  FileText
+  FileText,
+  Edit3,
+  Check,
+  X as CloseIcon
 } from 'lucide-react';
 import { formatUnit } from '@/lib/logistics';
 import { useNotifications } from '@/lib/notifications';
 import { supabase } from '@/shared/lib/supabase';
-import { useDeleteItem, useRemoveImage } from '@/features/inventory/useInventory';
+import { useDeleteItem, useRemoveImage, useInventory } from '@/features/inventory/useInventory';
+import { useEngine } from '@/lib/engine-context';
 
 
 interface ItemCardProps {
@@ -48,6 +51,7 @@ interface ItemCardProps {
     image_refs?: string[];
     ebay_description?: string;
     quantity?: number;
+    price_range?: { min: number; max: number; currency: string };
   };
 }
 
@@ -58,9 +62,74 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
 
   const [showRescan, setShowRescan] = useState(false);
   const [isRescanning, setIsRescanning] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isAdjusting, setIsAdjusting] = useState(false);
+  const [editValues, setEditValues] = useState<any>({});
+  
   const { addNotification } = useNotifications();
+  const { engine } = useEngine();
   const deleteMutation = useDeleteItem();
   const removeImageMutation = useRemoveImage();
+  const { refetch } = useInventory();
+
+  // Initialize edit values when entering edit mode
+  const startEditing = () => {
+    if (!item) return;
+    setEditValues({
+      name: item.name,
+      brand: item.brand,
+      category: item.category,
+      quantity: item.quantity || 1,
+      price: item.price,
+      weight: item.weight || 0,
+      length: item.length || 0,
+      width: item.width || 0,
+      height: item.height || 0,
+    });
+    setIsEditing(true);
+  };
+
+  const handleAdjust = async () => {
+    if (!item?.id) return;
+    setIsAdjusting(true);
+    try {
+      addNotification({ 
+        type: 'info', 
+        title: 'Adjusting Intelligence', 
+        message: 'Gemini is refining drafts based on your edits...',
+        duration: 2000
+      });
+
+      const res = await fetch('/api/inventory/adjust', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          itemId: item.id, 
+          updates: editValues,
+          modelType: engine
+        })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to adjust');
+
+      addNotification({
+        type: 'success',
+        title: 'Intelligence Refined',
+        message: 'Title and descriptions adjusted successfully.'
+      });
+      setIsEditing(false);
+      refetch(); // Refresh list to show updated data
+    } catch (err: any) {
+      addNotification({
+        type: 'error',
+        title: 'Adjustment Failed',
+        message: err.message
+      });
+    } finally {
+      setIsAdjusting(false);
+    }
+  };
 
   const handleDelete = () => {
     if (!item?.id) return;
@@ -109,6 +178,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
         message: `Successfully re-appraised with Gemini ${model.replace('-', ' ').toUpperCase()}`
       });
       setShowRescan(false);
+      refetch();
     } catch (err: any) {
       addNotification({
         type: 'error',
@@ -123,11 +193,12 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
   return (
     <motion.div
       layout
-      whileHover={{ y: -5, boxShadow: '0 10px 40px -10px rgba(126, 34, 206, 0.3)' }}
+      whileHover={!isEditing ? { y: -5, boxShadow: '0 10px 40px -10px rgba(126, 34, 206, 0.3)' } : {}}
       className={`group relative overflow-hidden rounded-3xl glass-panel p-5 transition-all duration-500 ${
-        isScanning ? 'animate-pulse-glow border-white/20' : 
+        isScanning || isAdjusting ? 'animate-pulse-glow border-white/20' : 
         isSuccess ? 'border-titanium-400/30' : 
         isError ? 'border-red-500/50' : 
+        isEditing ? 'border-blue-500/50 ring-1 ring-blue-500/20' :
         'border-white/5 hover:border-uv-purple/30'
       }`}
     >
@@ -142,24 +213,71 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
       <div className="flex flex-col gap-4">
         {/* Top Header */}
         <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={`p-2 rounded-lg ${isScanning ? 'bg-white/10' : 'bg-black/40 border border-white/5'}`}>
-              <Package className={`h-4 w-4 ${isScanning ? 'text-white' : 'text-titanium-400'}`} />
+          <div className="flex items-center gap-2 flex-1 mr-2">
+            <div className={`p-2 rounded-lg ${isScanning || isAdjusting ? 'bg-white/10' : 'bg-black/40 border border-white/5'}`}>
+              <Package className={`h-4 w-4 ${isScanning || isAdjusting ? 'text-white' : 'text-titanium-400'}`} />
             </div>
-            <div>
-              <h3 className="text-xs font-black uppercase tracking-widest text-white text-glow-uv">
-                {item?.name || (isScanning ? 'Identifying...' : 'New Entry')}
-              </h3>
-              <p className="text-[10px] font-bold text-titanium-500 uppercase tracking-tighter italic">{item?.category || 'Ready for scan'}</p>
+            <div className="flex-1">
+              {isEditing ? (
+                <input 
+                  value={editValues.name}
+                  onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
+                  className="w-full bg-black/60 border border-blue-500/30 rounded-lg px-2 py-1 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-blue-500"
+                />
+              ) : (
+                <h3 className="text-xs font-black uppercase tracking-widest text-white text-glow-uv truncate">
+                  {item?.name || (isScanning ? 'Identifying...' : 'New Entry')}
+                </h3>
+              )}
+              {isEditing ? (
+                <input 
+                  value={editValues.category}
+                  onChange={(e) => setEditValues({ ...editValues, category: e.target.value })}
+                  className="w-full mt-1 bg-black/60 border border-blue-500/30 rounded-lg px-2 py-0.5 text-[9px] font-bold text-titanium-500 uppercase tracking-tighter focus:outline-none focus:border-blue-500"
+                />
+              ) : (
+                <p className="text-[10px] font-bold text-titanium-500 uppercase tracking-tighter italic truncate">{item?.category || 'Ready for scan'}</p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1">
-            {isSuccess && <CheckCircle2 className="h-4 w-4 text-white" />}
-            {isError && <AlertCircle className="h-4 w-4 text-red-500" />}
-            {item?.id && (
+            {isSuccess && !isEditing && <CheckCircle2 className="h-4 w-4 text-white" />}
+            {isError && !isEditing && <AlertCircle className="h-4 w-4 text-red-500" />}
+            
+            {item?.id && !isEditing && (
+              <button 
+                onClick={startEditing}
+                className="text-titanium-600 hover:text-white transition-colors p-1"
+                title="Edit fields"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+              </button>
+            )}
+
+            {isEditing && (
+              <div className="flex gap-1">
+                <button 
+                  onClick={handleAdjust}
+                  disabled={isAdjusting}
+                  className="text-emerald-500 hover:text-emerald-400 transition-colors p-1 bg-emerald-500/10 rounded-full"
+                  title="Save & AI Adjust"
+                >
+                  <Check className="h-4 w-4" />
+                </button>
+                <button 
+                  onClick={() => setIsEditing(false)}
+                  className="text-red-500 hover:text-red-400 transition-colors p-1 bg-red-500/10 rounded-full"
+                  title="Discard changes"
+                >
+                  <CloseIcon className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {item?.id && !isEditing && (
               <button 
                 onClick={handleDelete}
-                className="text-titanium-600 hover:text-white transition-colors ml-2"
+                className="text-titanium-600 hover:text-white transition-colors ml-1 p-1"
                 disabled={deleteMutation.isPending}
               >
                 {deleteMutation.isPending ? (
@@ -214,7 +332,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
         {/* Content Area */}
         <div className="min-h-[60px] flex flex-col justify-center">
           <AnimatePresence mode="wait">
-            {isScanning ? (
+            {isScanning || isAdjusting ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -223,6 +341,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
               >
                 <div className="h-1.5 w-full animate-pulse rounded-full bg-white/5" />
                 <div className="h-1.5 w-3/4 animate-pulse rounded-full bg-white/5" />
+                <p className="text-[7px] font-black uppercase text-center text-titanium-500 animate-pulse">Processing Stream...</p>
               </motion.div>
             ) : item ? (
               <motion.div
@@ -232,15 +351,40 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
               >
                 <div className="titanium-panel p-2.5 rounded-xl">
                   <p className="text-[7px] font-black uppercase tracking-[0.2em] text-titanium-500">Origin</p>
-                  <p className="text-[10px] font-bold text-white tracking-widest truncate">{item.brand}</p>
+                  {isEditing ? (
+                    <input 
+                      value={editValues.brand}
+                      onChange={(e) => setEditValues({ ...editValues, brand: e.target.value })}
+                      className="w-full bg-transparent border-none p-0 text-[10px] font-bold text-white tracking-widest focus:ring-0"
+                    />
+                  ) : (
+                    <p className="text-[10px] font-bold text-white tracking-widest truncate">{item.brand}</p>
+                  )}
                 </div>
                 <div className="titanium-panel p-2.5 rounded-xl border-l-2 border-white/10">
                   <p className="text-[7px] font-black uppercase tracking-[0.2em] text-titanium-500">Qty</p>
-                  <p className="text-[10px] font-bold text-white tracking-widest">{item.quantity || 1}</p>
+                  {isEditing ? (
+                    <input 
+                      type="number"
+                      value={editValues.quantity}
+                      onChange={(e) => setEditValues({ ...editValues, quantity: parseInt(e.target.value) || 0 })}
+                      className="w-full bg-transparent border-none p-0 text-[10px] font-bold text-white tracking-widest focus:ring-0"
+                    />
+                  ) : (
+                    <p className="text-[10px] font-bold text-white tracking-widest">{item.quantity || 1}</p>
+                  )}
                 </div>
                 <div className="titanium-panel p-2.5 rounded-xl border-l-2 border-white/20">
                   <p className="text-[7px] font-black uppercase tracking-[0.2em] text-titanium-500">Valuation</p>
-                  <p className="text-[10px] font-bold text-white tracking-widest text-glow-emerald">{item.price}</p>
+                  {isEditing ? (
+                    <input 
+                      value={editValues.price}
+                      onChange={(e) => setEditValues({ ...editValues, price: e.target.value })}
+                      className="w-full bg-transparent border-none p-0 text-[10px] font-bold text-white tracking-widest focus:ring-0"
+                    />
+                  ) : (
+                    <p className="text-[10px] font-bold text-white tracking-widest text-glow-emerald">{item.price}</p>
+                  )}
                 </div>
               </motion.div>
             ) : (
@@ -254,15 +398,53 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
           <div className="grid grid-cols-2 gap-2">
             <div className="flex items-center gap-2 rounded-xl bg-black/40 p-2.5 border border-white/5">
               <Scale className="h-3 w-3 text-titanium-500" />
-              <span className="text-[10px] font-black text-white tracking-widest">
-                {formatUnit(item.weight || 0, 'weight', unitSystem)}
-              </span>
+              {isEditing ? (
+                <div className="flex items-center gap-1">
+                  <input 
+                    type="number"
+                    step="0.01"
+                    value={editValues.weight}
+                    onChange={(e) => setEditValues({ ...editValues, weight: parseFloat(e.target.value) || 0 })}
+                    className="w-12 bg-transparent border-none p-0 text-[10px] font-black text-white tracking-widest focus:ring-0"
+                  />
+                  <span className="text-[8px] text-titanium-500 uppercase">lbs</span>
+                </div>
+              ) : (
+                <span className="text-[10px] font-black text-white tracking-widest">
+                  {formatUnit(item.weight || 0, 'weight', unitSystem)}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2 rounded-xl bg-black/40 p-2.5 border border-white/5">
               <Box className="h-3 w-3 text-titanium-500" />
-              <span className="text-[10px] font-black text-white tracking-widest">
-                {item.length || 0}x{item.width || 0}x{item.height || 0}
-              </span>
+              {isEditing ? (
+                <div className="flex items-center gap-0.5 text-[8px]">
+                  <input 
+                    type="number"
+                    value={editValues.length}
+                    onChange={(e) => setEditValues({ ...editValues, length: parseFloat(e.target.value) || 0 })}
+                    className="w-6 bg-transparent border-none p-0 text-[10px] font-black text-white focus:ring-0"
+                  />
+                  <span className="text-titanium-700">x</span>
+                  <input 
+                    type="number"
+                    value={editValues.width}
+                    onChange={(e) => setEditValues({ ...editValues, width: parseFloat(e.target.value) || 0 })}
+                    className="w-6 bg-transparent border-none p-0 text-[10px] font-black text-white focus:ring-0"
+                  />
+                  <span className="text-titanium-700">x</span>
+                  <input 
+                    type="number"
+                    value={editValues.height}
+                    onChange={(e) => setEditValues({ ...editValues, height: parseFloat(e.target.value) || 0 })}
+                    className="w-6 bg-transparent border-none p-0 text-[10px] font-black text-white focus:ring-0"
+                  />
+                </div>
+              ) : (
+                <span className="text-[10px] font-black text-white tracking-widest">
+                  {item.length || 0}x{item.width || 0}x{item.height || 0}
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -286,7 +468,8 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
             <div className="flex gap-2">
               <button 
                 onClick={() => setShowRescan(!showRescan)}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white/5 py-2.5 text-[9px] font-black uppercase tracking-widest text-titanium-300 border border-white/5 hover:bg-white/10 hover:text-white transition-all"
+                disabled={isEditing || isAdjusting}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white/5 py-2.5 text-[9px] font-black uppercase tracking-widest text-titanium-300 border border-white/5 hover:bg-white/10 hover:text-white transition-all disabled:opacity-30"
               >
                 {isRescanning ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
@@ -299,14 +482,16 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
               </button>
               <button 
                 onClick={() => onList?.(item)}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white text-black py-2.5 text-[9px] font-black uppercase tracking-widest hover:bg-titanium-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                disabled={isEditing || isAdjusting}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white text-black py-2.5 text-[9px] font-black uppercase tracking-widest hover:bg-titanium-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] disabled:opacity-30"
               >
                 <ShoppingCart className="h-3 w-3" />
                 List
               </button>
               <button 
                 onClick={() => onSold?.(item)}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-titanium-800 text-white py-2.5 text-[9px] font-black uppercase tracking-widest border border-white/10 hover:bg-titanium-700 transition-all"
+                disabled={isEditing || isAdjusting}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-titanium-800 text-white py-2.5 text-[9px] font-black uppercase tracking-widest border border-white/10 hover:bg-titanium-700 transition-all disabled:opacity-30"
               >
                 <DollarSign className="h-3 w-3" />
                 Sold
@@ -363,7 +548,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
 
       {/* Decorative Glow */}
       <div className={`absolute -right-10 -top-10 h-32 w-32 rounded-full blur-[80px] opacity-10 ${
-        isScanning ? 'bg-white' : 
+        isScanning || isAdjusting ? 'bg-white' : 
         isSuccess ? 'bg-titanium-400' : 
         isError ? 'bg-red-500' : 
         'bg-transparent'

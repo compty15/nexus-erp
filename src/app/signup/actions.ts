@@ -1,0 +1,25 @@
+'use server';
+
+import { createClient } from '@/shared/lib/supabase-server';
+import { redirect } from 'next/navigation';
+
+export async function signUp(formData: FormData) {
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  // Redirect to a check-email page or back to login with a message
+  redirect('/login?message=Check your email to confirm your account.');
+}

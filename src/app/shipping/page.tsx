@@ -61,45 +61,80 @@ export default function ShippingPage() {
         </div>
       ) : (
         <div className="rounded-3xl border border-[#222] bg-[#0a0a0a] overflow-hidden">
-          <table className="w-full text-left text-sm text-gray-400">
-            <thead className="bg-[#111] text-xs font-bold uppercase text-gray-500">
-              <tr>
-                <th className="px-6 py-4">Item Name</th>
-                <th className="px-6 py-4">Marketplace</th>
-                <th className="px-6 py-4">Weight / Dims</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {soldItems.map((item) => (
-                <tr key={item.id} className="border-b border-[#222] hover:bg-[#111]/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {item.image_refs?.[0] && (
-                        <img src={item.image_refs[0]} alt="" className="h-10 w-10 rounded-lg object-cover" />
-                      )}
-                      <div>
-                        <p className="font-bold text-white">{item.name}</p>
-                        <p className="text-[10px] text-gray-500">{item.brand}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 capitalize text-emerald-400 font-medium">
-                    {item.marketplace_source || 'Direct'}
-                  </td>
-                  <td className="px-6 py-4 font-mono">
-                    {item.weight_raw || 0} lbs <br/>
-                    <span className="text-[10px] text-gray-500">{item.length_in || 0}x{item.width_in || 0}x{item.height_in || 0}"</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="rounded-lg bg-[#222] px-4 py-2 text-xs font-bold text-white hover:bg-[#333] transition-colors">
-                      Mark Shipped
-                    </button>
-                  </td>
+          {/* Desktop Table */}
+          <div className="hidden sm:block">
+            <table className="w-full text-left text-sm text-gray-400">
+              <thead className="bg-[#111] text-xs font-bold uppercase text-gray-500">
+                <tr>
+                  <th className="px-6 py-4">Item Name</th>
+                  <th className="px-6 py-4">Marketplace</th>
+                  <th className="px-6 py-4">Weight / Dims</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {soldItems.map((item) => (
+                  <tr key={item.id} className="border-b border-[#222] hover:bg-[#111]/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {item.image_refs?.[0] && (
+                          <img src={item.image_refs[0]} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                        )}
+                        <div>
+                          <p className="font-bold text-white">{item.name}</p>
+                          <p className="text-[10px] text-gray-500">{item.brand}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 capitalize text-emerald-400 font-medium">
+                      {item.marketplace_source || 'Direct'}
+                    </td>
+                    <td className="px-6 py-4 font-mono">
+                      {item.weight_raw || 0} lbs <br/>
+                      <span className="text-[10px] text-gray-500">{item.length_in || 0}x{item.width_in || 0}x{item.height_in || 0}"</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button className="rounded-lg bg-[#222] px-4 py-2 text-xs font-bold text-white hover:bg-[#333] transition-colors">
+                        Mark Shipped
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="block sm:hidden divide-y divide-[#222]">
+            {soldItems.map((item) => (
+              <div key={item.id} className="p-4 space-y-4">
+                <div className="flex gap-4">
+                  {item.image_refs?.[0] && (
+                    <img src={item.image_refs[0]} alt="" className="h-16 w-16 rounded-xl object-cover" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-white leading-tight">{item.name}</p>
+                    <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">{item.brand}</p>
+                    <span className="mt-2 inline-block rounded-full bg-emerald-600/10 px-2 py-0.5 text-[8px] font-bold uppercase text-emerald-400">
+                      {item.marketplace_source || 'Direct'}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between rounded-xl bg-[#111] p-3">
+                  <div className="flex items-center gap-2">
+                    <Box className="h-3 w-3 text-gray-500" />
+                    <span className="text-[10px] font-mono text-gray-300">
+                      {item.weight_raw || 0} lbs | {item.length_in || 0}x{item.width_in || 0}x{item.height_in || 0}"
+                    </span>
+                  </div>
+                  <button className="rounded-lg bg-blue-600 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg shadow-blue-900/20">
+                    Ship Now
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
