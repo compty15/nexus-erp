@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Camera, 
@@ -14,14 +14,19 @@ import {
   Box, 
   ArrowUpRight, 
   ShoppingCart,
-  DollarSign 
+  DollarSign,
+  Activity,
+  BrainCircuit
 } from 'lucide-react';
 import { formatUnit } from '@/lib/logistics';
+import { useNotifications } from '@/lib/notifications';
+import { supabase } from '@/shared/lib/supabase';
 
 interface ItemCardProps {
   status?: 'idle' | 'scanning' | 'success' | 'error';
   unitSystem?: 'imperial' | 'metric';
   item?: {
+    id: string;
     name: string;
     brand: string;
     category: string;
@@ -40,6 +45,40 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
   const isScanning = status === 'scanning';
   const isSuccess = status === 'success';
   const isError = status === 'error';
+
+  const [showRescan, setShowRescan] = useState(false);
+  const [isRescanning, setIsRescanning] = useState(false);
+  const { addNotification } = useNotifications();
+
+  const handleRescan = async (model: 'flash' | 'pro' | 'thinking') => {
+    if (!item?.id) return;
+    setIsRescanning(true);
+    try {
+      const res = await fetch('/api/inventory/rescan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId: item.id, modelType: model })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to rescan');
+
+      addNotification({
+        type: 'success',
+        title: 'Rescan Complete',
+        message: `Successfully re-appraised with Gemini ${model.toUpperCase()}`
+      });
+      setShowRescan(false);
+    } catch (err: any) {
+      addNotification({
+        type: 'error',
+        title: 'Rescan Failed',
+        message: err.message
+      });
+    } finally {
+      setIsRescanning(false);
+    }
+  };
 
   return (
     <motion.div
@@ -137,15 +176,52 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
 
         {/* Action Buttons */}
         {item && (
-          <div className="flex gap-2">
-            <button className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600/10 py-2 text-[10px] font-bold text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 transition-all">
-              <ShoppingCart className="h-3 w-3" />
-              List Item
-            </button>
-            <button className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600/10 py-2 text-[10px] font-bold text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600/20 transition-all">
-              <DollarSign className="h-3 w-3" />
-              Mark Sold
-            </button>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setShowRescan(!showRescan)}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-purple-600/10 py-2 text-[10px] font-bold text-purple-400 border border-purple-500/20 hover:bg-purple-600/20 transition-all"
+              >
+                {isRescanning ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                    <Activity className="h-3 w-3" />
+                  </motion.div>
+                ) : (
+                  <BrainCircuit className="h-3 w-3" />
+                )}
+                {isRescanning ? 'Scanning...' : 'Rescan'}
+              </button>
+              <button className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600/10 py-2 text-[10px] font-bold text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 transition-all">
+                <ShoppingCart className="h-3 w-3" />
+                List Item
+              </button>
+              <button className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600/10 py-2 text-[10px] font-bold text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600/20 transition-all">
+                <DollarSign className="h-3 w-3" />
+                Mark Sold
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {showRescan && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="flex gap-2 overflow-hidden"
+                >
+                  {['flash', 'pro', 'thinking'].map((model) => (
+                    <button
+                      key={model}
+                      disabled={isRescanning}
+                      onClick={() => handleRescan(model as any)}
+                      className="flex-1 rounded-lg bg-[#222] py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-[#333] transition-all capitalize"
+                    >
+                      {model}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 

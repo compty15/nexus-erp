@@ -107,7 +107,7 @@ export async function groupPhotos(images: { data: string; mimeType: string }[]) 
 
 /**
  * Stage 1: Flash Scan
- * Rapid identification with confidence scoring for escalation
+ * Rapid identification with deeper initial metadata extraction
  */
 export async function flashScan(images: { data: string; mimeType: string }[]) {
   const model = genAI.getGenerativeModel({ 
@@ -115,12 +115,22 @@ export async function flashScan(images: { data: string; mimeType: string }[]) {
     generationConfig: { responseMimeType: "application/json" }
   });
   
-  const prompt = `Identify this tool/material based on the provided images. 
+  const prompt = `Perform a detailed analysis of this tool/item based on the provided images. 
+  Extract as much deep metadata as possible to avoid needing a secondary scan.
   Include a "confidence" score (0.0 to 1.0). If confidence is below 0.8 or critical info is missing, set "needs_pro" to true.
   
   Format as JSON: { 
-    "name": "", "category": "", "brand": "", "price_range": {"min": 0, "max": 0}, 
-    "condition": "", "confidence": 0.0, "needs_pro": false 
+    "name": "", 
+    "category": "", 
+    "brand": "", 
+    "model_number": "",
+    "short_description": "",
+    "dimensions": "",
+    "materials": "",
+    "price_range": {"min": 0, "max": 0}, 
+    "condition": "", 
+    "confidence": 0.0, 
+    "needs_pro": false 
   }`;
 
   const result = await model.generateContent([
@@ -138,9 +148,9 @@ export async function flashScan(images: { data: string; mimeType: string }[]) {
 /**
  * Stage 2: Deep Dive (OCR & Metrology)
  */
-export async function deepDive(images: { data: string; mimeType: string }[]) {
+export async function deepDive(images: { data: string; mimeType: string }[], modelType: ModelType = "pro") {
   const model = genAI.getGenerativeModel({ 
-    model: MODEL_MAP.pro,
+    model: MODEL_MAP[modelType],
     generationConfig: { responseMimeType: "application/json" }
   });
   
