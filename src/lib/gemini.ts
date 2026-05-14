@@ -20,6 +20,19 @@ const MODEL_MAP: Record<ModelType, string> = {
 };
 
 /**
+ * Robust JSON parsing that handles Gemini markdown code blocks
+ */
+function safeParseJSON(text: string) {
+  try {
+    const cleaned = text.replace(/```json\n?|```/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.error('Failed to parse Gemini JSON:', text);
+    throw new Error('Intelligence Engine returned malformed data.');
+  }
+}
+
+/**
  * Updates model statistics in Supabase for burn rate tracking
  */
 export async function updateModelStats(model: ModelType, cost: number) {
@@ -73,7 +86,10 @@ export function calculateBurnRate(model: ModelType, usage: any) {
  * Uses Gemini Flash to suggest groupings for a batch of images
  */
 export async function groupPhotos(images: { data: string; mimeType: string }[]) {
-  const model = genAI.getGenerativeModel({ model: MODEL_MAP.flash });
+  const model = genAI.getGenerativeModel({ 
+    model: MODEL_MAP.flash,
+    generationConfig: { responseMimeType: "application/json" }
+  });
   
   const prompt = `Analyze these images and group them by item. 
   Images are provided in sequence. Return a JSON mapping of item names to image indices.
@@ -86,7 +102,7 @@ export async function groupPhotos(images: { data: string; mimeType: string }[]) 
 
   const result = await model.generateContent(parts);
   const response = await result.response;
-  return JSON.parse(response.text());
+  return safeParseJSON(response.text());
 }
 
 /**
@@ -94,7 +110,10 @@ export async function groupPhotos(images: { data: string; mimeType: string }[]) 
  * Rapid identification with confidence scoring for escalation
  */
 export async function flashScan(images: { data: string; mimeType: string }[]) {
-  const model = genAI.getGenerativeModel({ model: MODEL_MAP.flash });
+  const model = genAI.getGenerativeModel({ 
+    model: MODEL_MAP.flash,
+    generationConfig: { responseMimeType: "application/json" }
+  });
   
   const prompt = `Identify this tool/material based on the provided images. 
   Include a "confidence" score (0.0 to 1.0). If confidence is below 0.8 or critical info is missing, set "needs_pro" to true.
@@ -111,7 +130,7 @@ export async function flashScan(images: { data: string; mimeType: string }[]) {
 
   const response = await result.response;
   return {
-    data: JSON.parse(response.text()),
+    data: safeParseJSON(response.text()),
     usage: response.usageMetadata
   };
 }
@@ -120,7 +139,10 @@ export async function flashScan(images: { data: string; mimeType: string }[]) {
  * Stage 2: Deep Dive (OCR & Metrology)
  */
 export async function deepDive(images: { data: string; mimeType: string }[]) {
-  const model = genAI.getGenerativeModel({ model: MODEL_MAP.pro });
+  const model = genAI.getGenerativeModel({ 
+    model: MODEL_MAP.pro,
+    generationConfig: { responseMimeType: "application/json" }
+  });
   
   const prompt = `Perform high-precision analysis on these images:
   1. Extract ALL serial numbers.
@@ -151,7 +173,7 @@ export async function deepDive(images: { data: string; mimeType: string }[]) {
 
   const response = await result.response;
   return {
-    data: JSON.parse(response.text()),
+    data: safeParseJSON(response.text()),
     usage: response.usageMetadata
   };
 }
