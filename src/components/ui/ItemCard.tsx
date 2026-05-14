@@ -17,7 +17,8 @@ import {
   DollarSign,
   Activity,
   BrainCircuit,
-  Trash
+  Trash,
+  FileText
 } from 'lucide-react';
 import { formatUnit } from '@/lib/logistics';
 import { useNotifications } from '@/lib/notifications';
@@ -45,6 +46,7 @@ interface ItemCardProps {
     height?: number;
     image?: string | null;
     image_refs?: string[];
+    ebay_description?: string;
   };
 }
 
@@ -248,6 +250,19 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 {item.length || 0}"x{item.width || 0}"x{item.height || 0}"
               </span>
             </div>
+          </div>
+        )}
+
+        {/* eBay Description Preview */}
+        {item?.ebay_description && (
+          <div className="rounded-xl bg-[#0a0a0a] p-3 border border-[#222]">
+            <p className="text-[9px] uppercase text-gray-600 font-bold mb-1 flex items-center gap-1">
+              <FileText className="h-2 w-2" />
+              eBay Listing Description
+            </p>
+            <p className="text-[10px] text-gray-400 line-clamp-3 leading-relaxed italic">
+              "{item.ebay_description}"
+            </p>
           </div>
         )}
 

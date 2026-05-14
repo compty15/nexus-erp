@@ -252,7 +252,8 @@ export default function Home() {
                           width: item.width_in ?? undefined,
                           height: item.height_in ?? undefined,
                           image: item.image_refs?.[0] || null,
-                          image_refs: item.image_refs || []
+                          image_refs: item.image_refs || [],
+                          ebay_description: item.metadata?.drafts?.ebay?.description
                         }} 
                       />
                     </div>
