@@ -29,6 +29,7 @@ export const InventoryItemSchema = z.object({
   name: z.string(),
   brand: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
+  quantity: z.number().default(1),
   status: z.enum(['draft', 'identified', 'needs_review', 'sold', 'archived', 'deleted']).default('identified'),
   
   // Specs spread

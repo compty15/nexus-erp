@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import { EngineProvider } from "@/lib/engine-context";
 import NotificationCenter from "@/components/ui/NotificationCenter";
 import Providers from "@/shared/lib/providers";
+import DynamicBackground from "@/components/ui/DynamicBackground";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,12 +28,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
         <Providers>
           <EngineProvider>
+            <DynamicBackground />
             <Header />
-            <main className="min-h-screen pb-20">
+            <main className="relative z-10 min-h-screen pb-20">
               {children}
             </main>
             <NotificationCenter />

@@ -54,15 +54,15 @@ export default function MarkAsSoldModal({
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
-        className="w-full max-w-md overflow-hidden rounded-[32px] border border-[#222] bg-[#111] shadow-2xl"
+        className="w-full max-w-md overflow-hidden rounded-[32px] glass-panel shadow-2xl"
       >
         <div className="p-8">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">Mark as Sold</h2>
-            <div className="flex items-center gap-2 rounded-full bg-blue-500/10 px-3 py-1">
-              <Clock className="h-3 w-3 text-blue-400" />
-              <span className="text-[10px] font-bold text-blue-400 uppercase tracking-tighter">
-                {timeOnMarket} Days on Market
+            <h2 className="text-xl font-black uppercase tracking-tighter text-white">Capture Transaction</h2>
+            <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 border border-white/5">
+              <Clock className="h-3 w-3 text-titanium-400" />
+              <span className="text-[9px] font-black text-titanium-400 uppercase tracking-widest">
+                {timeOnMarket} Days In-System
               </span>
             </div>
           </div>
@@ -70,34 +70,34 @@ export default function MarkAsSoldModal({
           <div className="space-y-6">
             {/* Price Input */}
             <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">Final Sale Price</label>
-              <div className="relative">
+              <label className="mb-2 block text-[9px] font-black uppercase tracking-[0.2em] text-titanium-500">Final Settlement Price</label>
+              <div className="relative titanium-panel rounded-2xl">
                 <input
                   type="number"
                   value={soldPrice}
                   onChange={(e) => setSoldPrice(parseFloat(e.target.value))}
-                  className="w-full rounded-2xl border border-[#222] bg-[#0a0a0a] py-4 pl-12 pr-4 text-2xl font-bold text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-transparent py-5 pl-14 pr-4 text-3xl font-black text-white focus:outline-none tracking-tighter"
                 />
-                <DollarSign className="absolute left-4 top-4.5 h-6 w-6 text-gray-600" />
+                <DollarSign className="absolute left-5 top-5.5 h-6 w-6 text-titanium-600" />
               </div>
             </div>
 
             {/* Platform Selector */}
             <div>
-              <label className="mb-3 block text-xs font-bold uppercase tracking-wider text-gray-500 text-center">Select Marketplace</label>
+              <label className="mb-3 block text-[9px] font-black uppercase tracking-[0.2em] text-titanium-500 text-center">Marketplace Node</label>
               <div className="grid grid-cols-4 gap-3">
                 {platforms.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => setMarketplace(p.id)}
-                    className={`flex flex-col items-center gap-2 rounded-2xl border p-3 transition-all ${
+                    className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition-all ${
                       marketplace === p.id 
-                        ? 'border-blue-500 bg-blue-500/10' 
-                        : 'border-[#222] bg-[#0a0a0a] hover:border-[#333]'
+                        ? 'border-white/20 bg-white/10' 
+                        : 'border-white/5 bg-black/40 hover:border-white/10'
                     }`}
                   >
-                    <div className={`h-2 w-2 rounded-full ${p.color}`} />
-                    <span className={`text-[10px] font-bold uppercase ${marketplace === p.id ? 'text-white' : 'text-gray-500'}`}>
+                    <div className={`h-1.5 w-1.5 rounded-full ${marketplace === p.id ? 'bg-white shadow-[0_0_10px_white]' : 'bg-titanium-700'}`} />
+                    <span className={`text-[8px] font-black uppercase tracking-widest ${marketplace === p.id ? 'text-white' : 'text-titanium-600'}`}>
                       {p.label}
                     </span>
                   </button>
@@ -106,29 +106,29 @@ export default function MarkAsSoldModal({
             </div>
 
             {/* Proceeds Display */}
-            <div className="rounded-3xl bg-[#0a0a0a] p-6 border border-[#222]">
+            <div className="rounded-3xl bg-black/60 p-6 border border-white/5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Calculator className="h-4 w-4 text-gray-500" />
-                  <span className="text-xs text-gray-500">Estimated Proceeds</span>
+                  <Calculator className="h-4 w-4 text-titanium-500" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-titanium-500">Node Yield Estimate</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px] text-gray-600">Fee:</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-black uppercase text-titanium-600">Tax:</span>
                   <input 
                     type="number"
                     value={feePercent}
                     onChange={(e) => setFeePercent(parseFloat(e.target.value))}
-                    className="w-10 bg-transparent text-[10px] font-bold text-blue-400 focus:outline-none"
+                    className="w-10 bg-transparent text-[9px] font-black text-white focus:outline-none"
                   />
-                  <span className="text-[10px] text-blue-400">%</span>
+                  <span className="text-[9px] font-black text-white">%</span>
                 </div>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-black text-white">
+                <span className="text-4xl font-black text-white tracking-tighter">
                   ${proceeds.toFixed(2)}
                 </span>
-                <span className="text-xs font-bold text-emerald-500 uppercase">
-                  Net Profit
+                <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">
+                  Net Asset Recovery
                 </span>
               </div>
             </div>
@@ -137,9 +137,9 @@ export default function MarkAsSoldModal({
           <div className="mt-8 flex gap-3">
             <button
               onClick={onCancel}
-              className="flex-1 rounded-2xl border border-[#222] py-4 text-sm font-bold text-gray-500 hover:bg-[#222] transition-colors"
+              className="flex-1 rounded-2xl border border-white/5 py-4 text-[10px] font-black uppercase tracking-widest text-titanium-600 hover:bg-white/5 hover:text-white transition-all"
             >
-              Cancel
+              Abort
             </button>
             <button
               onClick={() => onConfirm({
@@ -149,9 +149,9 @@ export default function MarkAsSoldModal({
                 sold_at: new Date().toISOString(),
                 status: 'sold'
               })}
-              className="flex-1 rounded-2xl bg-white py-4 text-sm font-black text-black shadow-xl hover:bg-gray-200 transition-all active:scale-95"
+              className="flex-1 rounded-2xl bg-white py-4 text-[10px] font-black uppercase tracking-widest text-black shadow-2xl hover:bg-titanium-200 transition-all active:scale-95"
             >
-              Confirm Sale
+              Execute Sale
             </button>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export type Engine = 'flash' | 'pro' | 'thinking';
+export type Engine = 'flash' | 'pro-2.5' | 'flash-3.0' | 'pro-3.0' | 'pro-3.1';
 
 interface EngineContextType {
   engine: Engine;

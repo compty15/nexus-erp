@@ -47,6 +47,7 @@ interface ItemCardProps {
     image?: string | null;
     image_refs?: string[];
     ebay_description?: string;
+    quantity?: number;
   };
 }
 
@@ -122,42 +123,51 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
   return (
     <motion.div
       layout
-      className={`relative overflow-hidden rounded-2xl border bg-[#1a1a1a] p-5 transition-all duration-300 ${
-        isScanning ? 'animate-pulse-glow border-blue-500/50' : 
-        isSuccess ? 'animate-ramp-up border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 
-        isError ? 'animate-flash-red border-red-500/50' : 
-        'border-[#333]'
+      whileHover={{ y: -5, boxShadow: '0 10px 40px -10px rgba(126, 34, 206, 0.3)' }}
+      className={`group relative overflow-hidden rounded-3xl glass-panel p-5 transition-all duration-500 ${
+        isScanning ? 'animate-pulse-glow border-white/20' : 
+        isSuccess ? 'border-titanium-400/30' : 
+        isError ? 'border-red-500/50' : 
+        'border-white/5 hover:border-uv-purple/30'
       }`}
     >
+      {/* Holographic Scanline */}
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.03] bg-[linear-gradient(to_bottom,transparent_50%,#000_50%)] bg-[length:100%_4px] animate-scanline" />
+      
+      {/* Tech Corner Brackets */}
+      <div className="absolute top-4 left-4 w-2 h-2 border-t border-l border-white/20 rounded-tl-sm pointer-events-none" />
+      <div className="absolute top-4 right-4 w-2 h-2 border-t border-r border-white/20 rounded-tr-sm pointer-events-none" />
+      <div className="absolute bottom-4 left-4 w-2 h-2 border-b border-l border-white/20 rounded-bl-sm pointer-events-none" />
+      <div className="absolute bottom-4 right-4 w-2 h-2 border-b border-r border-white/20 rounded-br-sm pointer-events-none" />
       <div className="flex flex-col gap-4">
         {/* Top Header */}
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`p-2 rounded-lg ${isScanning ? 'bg-blue-500/10' : 'bg-[#333]'}`}>
-              <Package className={`h-5 w-5 ${isScanning ? 'text-blue-400' : 'text-gray-400'}`} />
+            <div className={`p-2 rounded-lg ${isScanning ? 'bg-white/10' : 'bg-black/40 border border-white/5'}`}>
+              <Package className={`h-4 w-4 ${isScanning ? 'text-white' : 'text-titanium-400'}`} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-xs font-black uppercase tracking-widest text-white text-glow-uv">
                 {item?.name || (isScanning ? 'Identifying...' : 'New Entry')}
               </h3>
-              <p className="text-xs text-gray-500">{item?.category || 'Ready for scan'}</p>
+              <p className="text-[10px] font-bold text-titanium-500 uppercase tracking-tighter italic">{item?.category || 'Ready for scan'}</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
-            {isSuccess && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+            {isSuccess && <CheckCircle2 className="h-4 w-4 text-white" />}
             {isError && <AlertCircle className="h-4 w-4 text-red-500" />}
             {item?.id && (
               <button 
                 onClick={handleDelete}
-                className="text-gray-500 hover:text-red-500 transition-colors ml-2"
+                className="text-titanium-600 hover:text-white transition-colors ml-2"
                 disabled={deleteMutation.isPending}
               >
                 {deleteMutation.isPending ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-                    <Activity className="h-4 w-4" />
+                    <Activity className="h-3 w-3" />
                   </motion.div>
                 ) : (
-                  <Trash className="h-4 w-4" />
+                  <Trash className="h-3 w-3" />
                 )}
               </button>
             )}
@@ -168,17 +178,17 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
         {(item?.image_refs && item.image_refs.length > 0) ? (
           <div className="relative z-0 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {item.image_refs.map((imgUrl, idx) => (
-              <div key={idx} className="relative h-40 w-32 shrink-0 overflow-hidden rounded-xl border border-[#222] bg-[#0a0a0a] group/img">
+              <div key={idx} className="relative h-44 w-36 shrink-0 overflow-hidden rounded-2xl border border-white/5 bg-black/60 group/img shadow-2xl">
                 <img 
                   src={imgUrl} 
                   alt={`${item.name} ${idx + 1}`} 
-                  className="h-full w-full object-cover opacity-90 transition-opacity group-hover/img:opacity-100"
+                  className="h-full w-full object-cover opacity-80 transition-all duration-500 group-hover/img:opacity-100 group-hover/img:scale-110"
                 />
                 {item?.id && (
                   <button
                     onClick={() => handleRemoveImage(imgUrl)}
                     disabled={removeImageMutation.isPending}
-                    className="absolute top-2 right-2 p-1 rounded bg-black/50 text-white opacity-0 group-hover/img:opacity-100 transition-all hover:bg-red-500/80 backdrop-blur-sm"
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover/img:opacity-100 transition-all hover:bg-red-500 backdrop-blur-md"
                     title="Remove photo"
                   >
                     {removeImageMutation.isPending ? (
@@ -192,11 +202,11 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
             ))}
           </div>
         ) : item?.image && (
-          <div className="relative h-40 w-full overflow-hidden rounded-xl border border-[#222] bg-[#0a0a0a] group/img">
+          <div className="relative h-44 w-full overflow-hidden rounded-2xl border border-white/5 bg-black/60 group/img shadow-2xl">
             <img 
               src={item.image} 
               alt={item.name} 
-              className="h-full w-full object-cover opacity-90 transition-opacity group-hover/img:opacity-100"
+              className="h-full w-full object-cover opacity-80 transition-all duration-500 group-hover/img:opacity-100 group-hover/img:scale-105"
             />
           </div>
         )}
@@ -211,26 +221,30 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 exit={{ opacity: 0 }}
                 className="space-y-2"
               >
-                <div className="h-2 w-full animate-pulse rounded-full bg-[#333]" />
-                <div className="h-2 w-3/4 animate-pulse rounded-full bg-[#333]" />
+                <div className="h-1.5 w-full animate-pulse rounded-full bg-white/5" />
+                <div className="h-1.5 w-3/4 animate-pulse rounded-full bg-white/5" />
               </motion.div>
             ) : item ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="grid grid-cols-2 gap-4"
+                className="grid grid-cols-3 gap-2"
               >
-                <div>
-                  <p className="text-[10px] uppercase text-gray-500">Brand</p>
-                  <p className="text-sm font-medium text-white">{item.brand}</p>
+                <div className="titanium-panel p-2.5 rounded-xl">
+                  <p className="text-[7px] font-black uppercase tracking-[0.2em] text-titanium-500">Origin</p>
+                  <p className="text-[10px] font-bold text-white tracking-widest truncate">{item.brand}</p>
                 </div>
-                <div>
-                  <p className="text-[10px] uppercase text-gray-500">Value Est.</p>
-                  <p className="text-sm font-medium text-blue-400">{item.price}</p>
+                <div className="titanium-panel p-2.5 rounded-xl border-l-2 border-white/10">
+                  <p className="text-[7px] font-black uppercase tracking-[0.2em] text-titanium-500">Qty</p>
+                  <p className="text-[10px] font-bold text-white tracking-widest">{item.quantity || 1}</p>
+                </div>
+                <div className="titanium-panel p-2.5 rounded-xl border-l-2 border-white/20">
+                  <p className="text-[7px] font-black uppercase tracking-[0.2em] text-titanium-500">Valuation</p>
+                  <p className="text-[10px] font-bold text-white tracking-widest text-glow-emerald">{item.price}</p>
                 </div>
               </motion.div>
             ) : (
-              <p className="text-sm text-gray-400">Drag images here or use camera</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-titanium-600 text-center">Awaiting Data Streams...</p>
             )}
           </AnimatePresence>
         </div>
@@ -238,16 +252,16 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
         {/* Physical Specs */}
         {item && (
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center gap-2 rounded-xl bg-[#0a0a0a] p-2 border border-[#222]">
-              <Scale className="h-3 w-3 text-gray-500" />
-              <span className="text-[10px] font-bold text-white">
+            <div className="flex items-center gap-2 rounded-xl bg-black/40 p-2.5 border border-white/5">
+              <Scale className="h-3 w-3 text-titanium-500" />
+              <span className="text-[10px] font-black text-white tracking-widest">
                 {formatUnit(item.weight || 0, 'weight', unitSystem)}
               </span>
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-[#0a0a0a] p-2 border border-[#222]">
-              <Box className="h-3 w-3 text-gray-500" />
-              <span className="text-[10px] font-bold text-white">
-                {item.length || 0}"x{item.width || 0}"x{item.height || 0}"
+            <div className="flex items-center gap-2 rounded-xl bg-black/40 p-2.5 border border-white/5">
+              <Box className="h-3 w-3 text-titanium-500" />
+              <span className="text-[10px] font-black text-white tracking-widest">
+                {item.length || 0}x{item.width || 0}x{item.height || 0}
               </span>
             </div>
           </div>
@@ -255,12 +269,12 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
 
         {/* eBay Description Preview */}
         {item?.ebay_description && (
-          <div className="rounded-xl bg-[#0a0a0a] p-3 border border-[#222]">
-            <p className="text-[9px] uppercase text-gray-600 font-bold mb-1 flex items-center gap-1">
-              <FileText className="h-2 w-2" />
-              eBay Listing Description
+          <div className="rounded-xl bg-black/40 p-3 border border-white/5 italic">
+            <p className="text-[8px] uppercase text-titanium-500 font-black mb-2 flex items-center gap-1.5 tracking-[0.2em]">
+              <FileText className="h-2.5 w-2.5" />
+              Intelligence Brief
             </p>
-            <p className="text-[10px] text-gray-400 line-clamp-3 leading-relaxed italic">
+            <p className="text-[10px] text-titanium-300 line-clamp-3 leading-relaxed">
               "{item.ebay_description}"
             </p>
           </div>
@@ -268,11 +282,11 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
 
         {/* Action Buttons */}
         {item && (
-          <div className="relative z-10 flex flex-col gap-2">
+          <div className="relative z-10 flex flex-col gap-2 mt-2">
             <div className="flex gap-2">
               <button 
                 onClick={() => setShowRescan(!showRescan)}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-purple-600/10 py-2 text-[10px] font-bold text-purple-400 border border-purple-500/20 hover:bg-purple-600/20 transition-all"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white/5 py-2.5 text-[9px] font-black uppercase tracking-widest text-titanium-300 border border-white/5 hover:bg-white/10 hover:text-white transition-all"
               >
                 {isRescanning ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
@@ -281,21 +295,21 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 ) : (
                   <BrainCircuit className="h-3 w-3" />
                 )}
-                {isRescanning ? 'Scanning...' : 'Rescan'}
+                Rescan
               </button>
               <button 
                 onClick={() => onList?.(item)}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600/10 py-2 text-[10px] font-bold text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 transition-all"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white text-black py-2.5 text-[9px] font-black uppercase tracking-widest hover:bg-titanium-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]"
               >
                 <ShoppingCart className="h-3 w-3" />
-                List Item
+                List
               </button>
               <button 
                 onClick={() => onSold?.(item)}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600/10 py-2 text-[10px] font-bold text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600/20 transition-all"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-titanium-800 text-white py-2.5 text-[9px] font-black uppercase tracking-widest border border-white/10 hover:bg-titanium-700 transition-all"
               >
                 <DollarSign className="h-3 w-3" />
-                Mark Sold
+                Sold
               </button>
             </div>
 
@@ -305,20 +319,20 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="flex gap-2 overflow-x-auto pb-2 no-scrollbar"
+                  className="flex gap-2 overflow-x-auto py-2 no-scrollbar"
                 >
                   {[
-                    { id: 'flash', label: '2.5 Flash' },
-                    { id: 'pro-2.5', label: '2.5 Pro' },
-                    { id: 'flash-3.0', label: '3.0 Flash' },
-                    { id: 'pro-3.0', label: '3.0 Pro' },
-                    { id: 'pro-3.1', label: '3.1 Pro' },
+                    { id: 'flash', label: 'FLS-2.5' },
+                    { id: 'pro-2.5', label: 'PRO-2.5' },
+                    { id: 'flash-3.0', label: 'FLS-3.0' },
+                    { id: 'pro-3.0', label: 'PRO-3.0' },
+                    { id: 'pro-3.1', label: 'PRO-3.1' },
                   ].map((model) => (
                     <button
                       key={model.id}
                       disabled={isRescanning}
                       onClick={() => handleRescan(model.id)}
-                      className="whitespace-nowrap rounded-lg bg-[#222] px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-[#333] transition-all"
+                      className="whitespace-nowrap rounded-lg bg-black/60 border border-white/5 px-3 py-2 text-[8px] font-black uppercase tracking-widest text-titanium-400 hover:text-white hover:border-white/20 transition-all"
                     >
                       {model.label}
                     </button>
@@ -330,33 +344,27 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
         )}
 
         {/* Footer Metrics */}
-        <div className="flex items-center justify-between border-t border-[#333] pt-4">
+        <div className="flex items-center justify-between border-t border-white/5 pt-4">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-gray-500">Scan Cost:</span>
-              <span className="text-[10px] font-mono text-emerald-400">{item?.cost || '$0.00'}</span>
+              <span className="text-[8px] font-black uppercase tracking-widest text-titanium-600">Cycle Cost:</span>
+              <span className="text-[10px] font-mono font-bold text-white">{item?.cost || '$0.00'}</span>
             </div>
-            {item?.totalCost && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] text-gray-500">Total Item Cost:</span>
-                <span className="text-[10px] font-mono text-blue-400">{item.totalCost}</span>
-              </div>
-            )}
           </div>
           <button 
             onClick={() => onDetails?.(item)}
-            className="flex items-center gap-1 text-[10px] font-medium text-blue-400 hover:underline"
+            className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors"
           >
             <Info className="h-3 w-3" />
-            Details
+            Specs
           </button>
         </div>
       </div>
 
-      {/* Decorative Gradient */}
-      <div className={`absolute -right-4 -top-4 h-24 w-24 rounded-full blur-3xl opacity-20 ${
-        isScanning ? 'bg-blue-500' : 
-        isSuccess ? 'bg-emerald-500' : 
+      {/* Decorative Glow */}
+      <div className={`absolute -right-10 -top-10 h-32 w-32 rounded-full blur-[80px] opacity-10 ${
+        isScanning ? 'bg-white' : 
+        isSuccess ? 'bg-titanium-400' : 
         isError ? 'bg-red-500' : 
         'bg-transparent'
       }`} />
