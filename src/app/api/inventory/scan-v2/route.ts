@@ -22,7 +22,10 @@ export async function POST(req: NextRequest) {
         const res = await fetch(url);
         const arrayBuffer = await res.arrayBuffer();
         // Convert to base64 for Gemini API inlineData
-        const base64Data = Buffer.from(arrayBuffer).toString('base64');
+        const base64Data = btoa(
+          new Uint8Array(arrayBuffer)
+            .reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
         return {
           data: base64Data,
           mimeType: res.headers.get('content-type') || 'image/jpeg',
