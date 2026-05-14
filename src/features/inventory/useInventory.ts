@@ -38,3 +38,51 @@ export function useMarkAsSold() {
     },
   });
 }
+
+export function useDeleteItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('inventory')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    },
+  });
+}
+
+export function useRemoveImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, imageUrl }: { id: string; imageUrl: string }) => {
+      const { data: item, error: fetchError } = await supabase
+        .from('inventory')
+        .select('image_refs')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      const newRefs = (item.image_refs || []).filter((url: string) => url !== imageUrl);
+      
+      const { error: updateError } = await supabase
+        .from('inventory')
+        .update({ image_refs: newRefs })
+        .eq('id', id);
+        
+      if (updateError) throw updateError;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    },
+  });
+}

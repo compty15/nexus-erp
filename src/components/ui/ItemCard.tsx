@@ -16,11 +16,14 @@ import {
   ShoppingCart,
   DollarSign,
   Activity,
-  BrainCircuit
+  BrainCircuit,
+  Trash
 } from 'lucide-react';
 import { formatUnit } from '@/lib/logistics';
 import { useNotifications } from '@/lib/notifications';
 import { supabase } from '@/shared/lib/supabase';
+import { useDeleteItem, useRemoveImage } from '@/features/inventory/useInventory';
+
 
 interface ItemCardProps {
   status?: 'idle' | 'scanning' | 'success' | 'error';
@@ -49,6 +52,36 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
   const [showRescan, setShowRescan] = useState(false);
   const [isRescanning, setIsRescanning] = useState(false);
   const { addNotification } = useNotifications();
+  const deleteMutation = useDeleteItem();
+  const removeImageMutation = useRemoveImage();
+
+  const handleDelete = () => {
+    if (!item?.id) return;
+    if (confirm('Are you sure you want to delete this item?')) {
+      deleteMutation.mutate(item.id, {
+        onSuccess: () => {
+          addNotification({ type: 'success', title: 'Deleted', message: 'Item deleted.' });
+        },
+        onError: (err: any) => {
+          addNotification({ type: 'error', title: 'Delete Failed', message: err.message });
+        }
+      });
+    }
+  };
+
+  const handleRemoveImage = () => {
+    if (!item?.id || !item?.image) return;
+    if (confirm('Are you sure you want to remove this photo?')) {
+      removeImageMutation.mutate({ id: item.id, imageUrl: item.image }, {
+        onSuccess: () => {
+          addNotification({ type: 'success', title: 'Photo Removed', message: 'The image has been deleted.' });
+        },
+        onError: (err: any) => {
+          addNotification({ type: 'error', title: 'Failed to Remove', message: err.message });
+        }
+      });
+    }
+  };
 
   const handleRescan = async (model: 'flash' | 'pro' | 'thinking') => {
     if (!item?.id) return;
@@ -107,18 +140,49 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
           <div className="flex items-center gap-1">
             {isSuccess && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
             {isError && <AlertCircle className="h-4 w-4 text-red-500" />}
+            {item?.id && (
+              <button 
+                onClick={handleDelete}
+                className="text-gray-500 hover:text-red-500 transition-colors ml-2"
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                    <Activity className="h-4 w-4" />
+                  </motion.div>
+                ) : (
+                  <Trash className="h-4 w-4" />
+                )}
+              </button>
+            )}
           </div>
         </div>
 
         {/* Item Image */}
         {item?.image && (
-          <div className="relative h-40 w-full overflow-hidden rounded-xl border border-[#222] bg-[#0a0a0a]">
+          <div className="relative h-40 w-full overflow-hidden rounded-xl border border-[#222] bg-[#0a0a0a] group/img">
             {/* Using standard img for now since we don't have domains configured in next.config.js for next/image */}
             <img 
               src={item.image} 
               alt={item.name} 
-              className="h-full w-full object-cover opacity-90 transition-opacity hover:opacity-100"
+              className="h-full w-full object-cover opacity-90 transition-opacity group-hover/img:opacity-100"
             />
+            {item?.id && (
+              <button
+                onClick={handleRemoveImage}
+                disabled={removeImageMutation.isPending}
+                className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/50 text-white opacity-0 group-hover/img:opacity-100 transition-all hover:bg-red-500/80 backdrop-blur-sm"
+                title="Remove photo"
+              >
+                {removeImageMutation.isPending ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                    <Activity className="h-4 w-4" />
+                  </motion.div>
+                ) : (
+                  <Trash className="h-4 w-4" />
+                )}
+              </button>
+            )}
           </div>
         )}
 
