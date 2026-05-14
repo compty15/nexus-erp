@@ -11,8 +11,43 @@ interface ItemDetailsModalProps {
 
 export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProps) {
   const [activeTab, setActiveTab] = useState<'info' | 'history'>('info');
+  const [selectedHistoryIndex, setSelectedHistoryIndex] = useState<number | null>(null);
   const deleteMutation = useDeleteItem();
   const { addNotification } = useNotifications();
+  const history = item.metadata?.scan_history || [];
+
+  const handleRestoreVersion = async (entry: any) => {
+    if (!confirm('Apply this scan data to the main item record?')) return;
+    
+    const { supabase } = await import('@/shared/lib/supabase');
+    const { error } = await supabase
+      .from('inventory')
+      .update({
+        name: entry.data.name,
+        brand: entry.data.brand,
+        category: entry.data.category,
+        price_range: entry.data.price_range,
+        weight_raw: entry.data.estimated_weight_lbs,
+        metadata: {
+          ...item.metadata,
+          short_description: entry.data.short_description,
+          dimensions: entry.data.dimensions,
+          materials: entry.data.materials,
+          serial_number: entry.data.serial_number,
+          measurement: entry.data.measurement,
+          wear_report: entry.data.wear_report,
+          drafts: entry.data.drafts || item.metadata.drafts
+        }
+      })
+      .eq('id', item.id);
+
+    if (error) {
+      addNotification({ type: 'error', title: 'Restore Failed', message: error.message });
+    } else {
+      addNotification({ type: 'success', title: 'Restored', message: 'Item updated with data from past scan.' });
+      onClose(); // Close to refresh
+    }
+  };
 
   const isDeleted = item.status === 'deleted';
 
@@ -27,38 +62,36 @@ export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProp
     }
   };
 
-  const history = item.metadata?.scan_history || [];
-
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-4xl rounded-[2rem] border border-[#333] bg-[#0a0a0a] overflow-hidden flex flex-col max-h-[90vh]"
+        className="w-full max-w-5xl rounded-[2.5rem] border border-[#333] bg-[#0a0a0a] overflow-hidden flex flex-col h-[85vh]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#222] bg-[#111] p-6">
+        <div className="flex items-center justify-between border-b border-[#222] bg-[#111] p-8">
           <div>
-            <h2 className="text-2xl font-black text-white">{item.name}</h2>
-            <p className="text-sm text-gray-500">{item.brand} • {item.category}</p>
+            <h2 className="text-3xl font-black text-white tracking-tight">{item.name}</h2>
+            <p className="text-sm text-gray-500 font-medium">{item.brand} • {item.category}</p>
           </div>
-          <button onClick={onClose} className="rounded-full bg-[#222] p-2 text-white hover:bg-[#333] transition-colors">
+          <button onClick={onClose} className="rounded-full bg-[#222] p-3 text-white hover:bg-[#333] transition-all hover:rotate-90">
             <X className="h-6 w-6" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-[#222] px-6">
+        <div className="flex border-b border-[#222] px-8 bg-[#0d0d0d]">
           <button 
             onClick={() => setActiveTab('info')}
-            className={`px-4 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'info' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-white'}`}
+            className={`px-6 py-5 text-xs uppercase tracking-widest font-black border-b-2 transition-all ${activeTab === 'info' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-white'}`}
           >
-            Item Details
+            Live Identity
           </button>
           <button 
             onClick={() => setActiveTab('history')}
-            className={`px-4 py-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'history' ? 'border-purple-500 text-purple-400' : 'border-transparent text-gray-500 hover:text-white'}`}
+            className={`px-6 py-5 text-xs uppercase tracking-widest font-black border-b-2 transition-all flex items-center gap-2 ${activeTab === 'history' ? 'border-purple-500 text-purple-400' : 'border-transparent text-gray-500 hover:text-white'}`}
           >
             <History className="h-4 w-4" />
             Scan History ({history.length})
@@ -66,44 +99,44 @@ export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProp
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-[#0a0a0a] to-[#111]">
+        <div className="flex-1 overflow-y-auto p-8 bg-gradient-to-b from-[#0a0a0a] to-[#0f0f0f]">
           {activeTab === 'info' && (
-            <div className="space-y-8">
-              <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-                <div className="rounded-2xl border border-[#222] bg-[#111] p-4">
-                  <span className="text-[10px] uppercase text-gray-500 font-bold">Estimated Value</span>
-                  <p className="text-xl font-bold text-white mt-1">
+            <div className="space-y-10">
+              <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+                <div className="group rounded-3xl border border-[#222] bg-[#111] p-6 transition-all hover:border-blue-500/50">
+                  <span className="text-[10px] uppercase text-gray-500 font-black tracking-tighter">Value Estimate</span>
+                  <p className="text-2xl font-black text-white mt-1">
                     ${item.price_range?.min || 0} - ${item.price_range?.max || 0}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[#222] bg-[#111] p-4">
-                  <span className="text-[10px] uppercase text-gray-500 font-bold">Physical Size</span>
-                  <p className="text-lg font-mono text-white mt-1">
+                <div className="group rounded-3xl border border-[#222] bg-[#111] p-6 transition-all hover:border-purple-500/50">
+                  <span className="text-[10px] uppercase text-gray-500 font-black tracking-tighter">Dimensions</span>
+                  <p className="text-xl font-mono font-bold text-white mt-1">
                     {item.length_in || 0}" x {item.width_in || 0}" x {item.height_in || 0}"
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[#222] bg-[#111] p-4">
-                  <span className="text-[10px] uppercase text-gray-500 font-bold">Weight</span>
-                  <p className="text-lg font-mono text-white mt-1">
+                <div className="group rounded-3xl border border-[#222] bg-[#111] p-6 transition-all hover:border-emerald-500/50">
+                  <span className="text-[10px] uppercase text-gray-500 font-black tracking-tighter">Weight</span>
+                  <p className="text-xl font-mono font-bold text-white mt-1">
                     {item.weight_raw || 0} lbs
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[#222] bg-[#111] p-4">
-                  <span className="text-[10px] uppercase text-gray-500 font-bold">Total AI Cost</span>
-                  <p className="text-xl font-bold text-emerald-400 mt-1">
+                <div className="group rounded-3xl border border-[#222] bg-[#111] p-6 transition-all hover:border-blue-400/50">
+                  <span className="text-[10px] uppercase text-gray-500 font-black tracking-tighter">Total AI Investment</span>
+                  <p className="text-2xl font-black text-blue-400 mt-1">
                     ${item.cost_metadata?.total_scan_cost?.toFixed(4) || '0.0000'}
                   </p>
                 </div>
               </div>
 
               {item.metadata?.short_description && (
-                <div>
-                  <h3 className="text-sm font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Description
+                    Active Description
                   </h3>
-                  <div className="rounded-2xl border border-[#222] bg-[#111] p-6 text-gray-300 leading-relaxed">
-                    {item.metadata.short_description}
+                  <div className="rounded-3xl border border-[#222] bg-[#111] p-8 text-gray-300 leading-relaxed text-lg italic shadow-inner">
+                    "{item.metadata.short_description}"
                   </div>
                 </div>
               )}
@@ -111,42 +144,127 @@ export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProp
           )}
 
           {activeTab === 'history' && (
-            <div className="space-y-6">
-              {history.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <History className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                  <p>No scan history available for this item.</p>
-                </div>
-              ) : (
-                history.map((entry: any, i: number) => (
-                  <div key={i} className="rounded-2xl border border-[#222] bg-[#111] p-6">
-                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-[#222]">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#222]">
-                          <Cpu className="h-5 w-5 text-purple-400" />
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 h-full">
+              {/* Scan List */}
+              <div className="md:col-span-4 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
+                {history.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 bg-[#111] rounded-3xl border border-[#222]">
+                    <History className="h-12 w-12 mx-auto mb-4 opacity-10" />
+                    <p className="text-sm">No history yet</p>
+                  </div>
+                ) : (
+                  [...history].reverse().map((entry: any, i: number) => {
+                    const originalIndex = history.length - 1 - i;
+                    return (
+                      <button 
+                        key={i} 
+                        onClick={() => setSelectedHistoryIndex(originalIndex)}
+                        className={`w-full text-left rounded-2xl border p-4 transition-all ${selectedHistoryIndex === originalIndex ? 'border-purple-500 bg-purple-500/10 shadow-[0_0_20px_rgba(168,85,247,0.15)]' : 'border-[#222] bg-[#111] hover:bg-[#1a1a1a] opacity-60 hover:opacity-100'}`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-black uppercase text-purple-400 tracking-tighter">{entry.model}</span>
+                          <span className="text-[10px] text-gray-600 font-mono">
+                            {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
                         </div>
+                        <p className="text-sm font-bold text-white truncate">{entry.data?.name || 'Scan identification'}</p>
+                        <p className="text-[10px] text-gray-500 mt-1">{new Date(entry.timestamp).toLocaleDateString()}</p>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Scan Detail View */}
+              <div className="md:col-span-8">
+                <AnimatePresence mode="wait">
+                  {selectedHistoryIndex !== null ? (
+                    <motion.div 
+                      key={selectedHistoryIndex}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="rounded-[2rem] border border-[#333] bg-[#0d0d0d] p-8 h-full flex flex-col"
+                    >
+                      <div className="flex items-center justify-between mb-8">
                         <div>
-                          <h4 className="font-bold text-white capitalize">{entry.model.replace('-', ' ')}</h4>
-                          <div className="flex items-center gap-1 text-[10px] text-gray-500">
-                            <Clock className="h-3 w-3" />
-                            {new Date(entry.timestamp).toLocaleString()}
+                          <h4 className="text-xl font-black text-white">{history[selectedHistoryIndex].data?.name || 'Scan Result'}</h4>
+                          <p className="text-xs text-gray-500 font-mono mt-1">{new Date(history[selectedHistoryIndex].timestamp).toLocaleString()}</p>
+                        </div>
+                        <button 
+                          onClick={() => handleRestoreVersion(history[selectedHistoryIndex])}
+                          className="flex items-center gap-2 rounded-full bg-blue-500 px-5 py-2 text-xs font-black text-white hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20"
+                        >
+                          <RotateCcw className="h-3 w-3" />
+                          Apply to Live Item
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mb-8">
+                        <div className="rounded-2xl bg-[#1a1a1a] p-4 border border-[#222]">
+                          <span className="text-[10px] text-gray-500 font-bold uppercase">Price Appraised</span>
+                          <p className="text-lg font-black text-emerald-400">
+                            ${history[selectedHistoryIndex].data?.price_range?.min || 0} - ${history[selectedHistoryIndex].data?.price_range?.max || 0}
+                          </p>
+                        </div>
+                        <div className="rounded-2xl bg-[#1a1a1a] p-4 border border-[#222]">
+                          <span className="text-[10px] text-gray-500 font-bold uppercase">Category</span>
+                          <p className="text-lg font-black text-white">
+                            {history[selectedHistoryIndex].data?.category || 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 space-y-6">
+                        <div>
+                          <h5 className="text-[10px] font-black text-gray-500 uppercase mb-2 flex items-center gap-1.5">
+                            <FileText className="h-3 w-3" />
+                            Scan Description
+                          </h5>
+                          <p className="text-gray-300 text-sm leading-relaxed bg-[#111] p-4 rounded-xl border border-[#222]">
+                            {history[selectedHistoryIndex].data?.short_description || 'No description captured in this scan.'}
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                          <div>
+                            <h5 className="text-[10px] font-black text-gray-500 uppercase mb-2">Metrics Identified</h5>
+                            <ul className="text-xs space-y-2 text-gray-400">
+                              <li className="flex justify-between border-b border-[#222] pb-1">
+                                <span>Confidence</span>
+                                <span className="text-blue-400 font-mono">{(history[selectedHistoryIndex].data?.confidence * 100).toFixed(0)}%</span>
+                              </li>
+                              <li className="flex justify-between border-b border-[#222] pb-1">
+                                <span>Weight</span>
+                                <span className="text-white">{history[selectedHistoryIndex].data?.estimated_weight_lbs || '0'} lbs</span>
+                              </li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h5 className="text-[10px] font-black text-gray-500 uppercase mb-2">Technical Info</h5>
+                            <ul className="text-xs space-y-2 text-gray-400">
+                              <li className="flex justify-between border-b border-[#222] pb-1">
+                                <span>Model #</span>
+                                <span className="text-white">{history[selectedHistoryIndex].data?.model_number || 'N/A'}</span>
+                              </li>
+                              <li className="flex justify-between border-b border-[#222] pb-1">
+                                <span>Serial #</span>
+                                <span className="text-white">{history[selectedHistoryIndex].data?.serial_number || 'N/A'}</span>
+                              </li>
+                            </ul>
                           </div>
                         </div>
                       </div>
+                    </motion.div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500 border-2 border-dashed border-[#222] rounded-[2rem]">
+                      <Cpu className="h-12 w-12 mb-4 opacity-10" />
+                      <p className="font-bold">Select a scan to view details</p>
+                      <p className="text-xs mt-1">Review captured metadata and platform drafts</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">Name Identified:</span>
-                        <p className="text-white font-medium">{entry.data?.name || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Confidence:</span>
-                        <p className="text-blue-400 font-mono">{(entry.data?.confidence * 100).toFixed(0)}%</p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           )}
         </div>
