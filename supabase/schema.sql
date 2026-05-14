@@ -35,6 +35,7 @@ CREATE TABLE public.inventory (
     marketplace_source TEXT, -- 'ebay', 'fb', 'etsy', 'shopify'
     
     -- Metadata
+    user_id UUID DEFAULT auth.uid(),
     cost_metadata JSONB DEFAULT '{"last_scan_cost": 0, "total_scan_cost": 0}'::jsonb,
     metadata JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -46,6 +47,7 @@ CREATE TABLE public.financials (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     branch_id TEXT REFERENCES public.branches(id) ON DELETE CASCADE,
     inventory_id UUID REFERENCES public.inventory(id) ON DELETE SET NULL,
+    user_id UUID DEFAULT auth.uid(),
     type TEXT NOT NULL CHECK (type IN ('revenue', 'expense', 'fee', 'shipping', 'labor', 'utility', 'wear')),
     amount NUMERIC(12, 2) NOT NULL,
     currency TEXT DEFAULT 'USD',
@@ -68,6 +70,7 @@ CREATE TABLE public.system_metrics (
 
 CREATE TABLE public.activity_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID DEFAULT auth.uid(),
     event_type TEXT NOT NULL,
     severity TEXT DEFAULT 'info',
     message TEXT,
@@ -83,7 +86,7 @@ CREATE TABLE public.jobs (
     payload JSONB DEFAULT '{}'::jsonb,
     result JSONB DEFAULT '{}'::jsonb,
     error TEXT,
-    user_id UUID,
+    user_id UUID DEFAULT auth.uid(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -127,8 +130,9 @@ ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.financials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.model_stats ENABLE ROW LEVEL SECURITY;
 
--- Temporary public policies
-CREATE POLICY "Public full access to inventory" ON public.inventory FOR ALL USING (true);
-CREATE POLICY "Public full access to jobs" ON public.jobs FOR ALL USING (true);
-CREATE POLICY "Public full access to financials" ON public.financials FOR ALL USING (true);
+-- Private owner access policies
+CREATE POLICY "Users can only see own inventory" ON public.inventory FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can only see own jobs" ON public.jobs FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can only see own financials" ON public.financials FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can only see own logs" ON public.activity_logs FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Public read only model_stats" ON public.model_stats FOR SELECT USING (true);

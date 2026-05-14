@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/shared/lib/supabase';
+import { createClient } from '@/shared/lib/supabase-server';
 import { flashScan, deepDive, calculateBurnRate, ModelType } from '@/lib/gemini';
 
 export const runtime = 'edge';
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient();
     const body = await req.json();
     const { itemId, modelType } = body;
 

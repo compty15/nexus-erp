@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/shared/lib/supabase';
+import { createClient } from '@/shared/lib/supabase-server';
 import { flashScan, calculateBurnRate } from '@/lib/gemini';
 
 // 🚀 Key Architecture Change: EDGE RUNTIME
@@ -8,6 +8,7 @@ export const runtime = 'edge';
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient();
     const body = await req.json();
     const { jobId, imageUrls, branchId, model } = body;
 
