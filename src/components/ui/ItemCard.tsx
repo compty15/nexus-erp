@@ -28,6 +28,8 @@ import { useDeleteItem, useRemoveImage } from '@/features/inventory/useInventory
 interface ItemCardProps {
   status?: 'idle' | 'scanning' | 'success' | 'error';
   unitSystem?: 'imperial' | 'metric';
+  onList?: (item: any) => void;
+  onSold?: (item: any) => void;
   item?: {
     id: string;
     name: string;
@@ -44,7 +46,7 @@ interface ItemCardProps {
   };
 }
 
-export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial' }: ItemCardProps) {
+export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial', onList, onSold }: ItemCardProps) {
   const isScanning = status === 'scanning';
   const isSuccess = status === 'success';
   const isError = status === 'error';
@@ -255,11 +257,17 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 )}
                 {isRescanning ? 'Scanning...' : 'Rescan'}
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600/10 py-2 text-[10px] font-bold text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 transition-all">
+              <button 
+                onClick={() => onList?.(item)}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600/10 py-2 text-[10px] font-bold text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 transition-all"
+              >
                 <ShoppingCart className="h-3 w-3" />
                 List Item
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600/10 py-2 text-[10px] font-bold text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600/20 transition-all">
+              <button 
+                onClick={() => onSold?.(item)}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600/10 py-2 text-[10px] font-bold text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600/20 transition-all"
+              >
                 <DollarSign className="h-3 w-3" />
                 Mark Sold
               </button>

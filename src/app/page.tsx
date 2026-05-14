@@ -208,6 +208,8 @@ export default function Home() {
                   <motion.div key={item.id} variants={itemVariants}>
                     <div className="group relative">
                       <ItemCard 
+                        onList={() => { setActiveItem(item); setModalMode('list'); }}
+                        onSold={() => { setActiveItem(item); setModalMode('sold'); }}
                         item={{
                           ...item,
                           name: item.name ?? 'Unknown Item',
@@ -223,20 +225,6 @@ export default function Home() {
                           image: item.image_refs?.[0] || null
                         }} 
                       />
-                      <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => { setActiveItem(item); setModalMode('list'); }}
-                          className="p-2 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-500"
-                        >
-                          List
-                        </button>
-                        <button 
-                          onClick={() => { setActiveItem(item); setModalMode('sold'); }}
-                          className="p-2 rounded-full bg-emerald-600 text-white shadow-xl hover:bg-emerald-500"
-                        >
-                          Sold
-                        </button>
-                      </div>
                     </div>
                   </motion.div>
                 ))}
