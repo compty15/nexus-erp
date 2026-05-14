@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/shared/lib/supabase-server';
 import { flashScan, calculateBurnRate } from '@/lib/gemini';
 
-// 🚀 Key Architecture Change: EDGE RUNTIME
-// Bypasses the Vercel 10-second Node.js timeout limit.
-export const runtime = 'edge';
+// 🚀 Standard Node.js runtime for better stability with large images and long AI calls
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,6 +20,7 @@ export async function POST(req: NextRequest) {
     const imageParts = await Promise.all(
       imageUrls.map(async (url: string) => {
         const res = await fetch(url);
+        if (!res.ok) throw new Error(`Failed to fetch image from ${url}`);
         const arrayBuffer = await res.arrayBuffer();
         // Convert to base64 for Gemini API inlineData
         const base64Data = Buffer.from(arrayBuffer).toString('base64');

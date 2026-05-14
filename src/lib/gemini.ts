@@ -28,8 +28,9 @@ const MODEL_MAP: Record<ModelType, string> = {
  */
 function safeParseJSON(text: string) {
   try {
-    const cleaned = text.replace(/```json\n?|```/g, '').trim();
-    return JSON.parse(cleaned);
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON object found in response');
+    return JSON.parse(jsonMatch[0]);
   } catch (err) {
     console.error('Failed to parse Gemini JSON:', text);
     throw new Error('Intelligence Engine returned malformed data.');
