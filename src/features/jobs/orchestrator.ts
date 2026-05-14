@@ -50,18 +50,18 @@ export class JobOrchestrator {
 
       const storageUrls = await Promise.all(
         files.map(async (file) => {
-          // Only compress/convert if it's an image
           if (file.type.startsWith('image/')) {
             const processedFile = await compressImage(file);
             return await uploadWithRetry(processedFile, 'raw_images');
           }
-          // For PDFs, Videos, etc., upload raw
           return await uploadWithRetry(file, 'raw_images');
         })
       );
 
+      // Save URLs to payload so we can retry without re-uploading
+      store.updateJob(newJob.id, { payload: { ...newJob.payload, imageUrls: storageUrls } });
+
       // 3. Call the Next.js API route to trigger Gemini ONLY
-      // Send the public URLs instead of massive base64 strings
       const response = await fetch('/api/inventory/scan-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,7 +82,6 @@ export class JobOrchestrator {
       // 4. Update Job as Completed
       store.updateJob(newJob.id, { status: 'completed', result });
       
-      // The API route should handle the DB update, but we do it client-side as fallback
       await supabase.from('jobs').update({ 
         status: 'completed', 
         result 
@@ -92,15 +91,48 @@ export class JobOrchestrator {
 
     } catch (error: any) {
       console.error('Job Orchestration Failed:', error);
-      
-      // Update local and remote state to failed
       store.updateJob(newJob.id, { status: 'failed', error: error.message });
-      await supabase.from('jobs').update({ 
-        status: 'failed', 
-        error: error.message 
-      }).eq('id', newJob.id);
-      
+      await supabase.from('jobs').update({ status: 'failed', error: error.message }).eq('id', newJob.id);
       throw error;
+    }
+  }
+
+  /**
+   * Retries an existing job with a potentially different model.
+   * Re-uses the already-uploaded imageUrls from the payload.
+   */
+  static async retryInventoryScan(jobId: string, model: string, branchId: string): Promise<void> {
+    const store = useQueueStore.getState();
+    const job = store.pendingJobs.find(j => j.id === jobId);
+    if (!job || !job.payload?.imageUrls) {
+      throw new Error('Cannot retry: Missing job data or image references.');
+    }
+
+    store.updateJob(jobId, { status: 'processing', error: null, payload: { ...job.payload, model } });
+    await supabase.from('jobs').update({ status: 'processing', error: null, payload: { ...job.payload, model } }).eq('id', jobId);
+
+    try {
+      const response = await fetch('/api/inventory/scan-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobId,
+          imageUrls: job.payload.imageUrls,
+          branchId,
+          model
+        })
+      });
+
+      if (!response.ok) throw new Error(await response.text());
+
+      const result = await response.json();
+      store.updateJob(jobId, { status: 'completed', result });
+      await supabase.from('jobs').update({ status: 'completed', result }).eq('id', jobId);
+
+    } catch (error: any) {
+      console.error('Retry Failed:', error);
+      store.updateJob(jobId, { status: 'failed', error: error.message });
+      await supabase.from('jobs').update({ status: 'failed', error: error.message }).eq('id', jobId);
     }
   }
 }

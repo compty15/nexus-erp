@@ -218,6 +218,27 @@ export default function Home() {
                           >
                             Clear Error
                           </button>
+                          
+                          <div className="mt-6 w-full border-t border-white/5 pt-4">
+                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-titanium-500 mb-2 text-center">Retry Intelligence Stream:</p>
+                            <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
+                              {[
+                                { id: 'flash', label: 'FLS-2.5' },
+                                { id: 'pro-2.5', label: 'PRO-2.5' },
+                                { id: 'flash-3.0', label: 'FLS-3.0' },
+                                { id: 'pro-3.0', label: 'PRO-3.0' },
+                                { id: 'pro-3.1', label: 'PRO-3.1' },
+                              ].map((m) => (
+                                <button
+                                  key={m.id}
+                                  onClick={() => JobOrchestrator.retryInventoryScan(job.id, m.id, 'BRANCH_A_PROD')}
+                                  className="whitespace-nowrap rounded-lg bg-black/60 border border-white/5 px-2.5 py-1.5 text-[8px] font-black uppercase tracking-widest text-titanium-400 hover:text-white hover:border-white/20 transition-all"
+                                >
+                                  {m.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </>
                       ) : (
                         <>
