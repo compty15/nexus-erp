@@ -18,6 +18,7 @@ import { useInventory } from '@/features/inventory/useInventory';
 import { useQueueStore } from '@/shared/lib/store';
 import MarkAsSoldModal from '@/components/inventory/MarkAsSoldModal';
 import ListingAssistant from '@/components/inventory/ListingAssistant';
+import ItemDetailsModal from '@/components/inventory/ItemDetailsModal';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -55,7 +56,7 @@ export default function Home() {
   
   // Local UI State for Modals
   const [activeItem, setActiveItem] = React.useState<any>(null);
-  const [modalMode, setModalMode] = React.useState<'none' | 'sold' | 'list'>('none');
+  const [modalMode, setModalMode] = React.useState<'none' | 'sold' | 'list' | 'details'>('none');
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     // ... (rest of handleFileSelect remains same)
@@ -204,12 +205,13 @@ export default function Home() {
                 ))}
 
                 {/* Actual Items */}
-                {items.filter(i => i.status !== 'sold').map((item) => (
+                {items.filter(i => i.status !== 'sold' && i.status !== 'deleted').map((item) => (
                   <motion.div key={item.id} variants={itemVariants}>
                     <div className="group relative">
                       <ItemCard 
                         onList={() => { setActiveItem(item); setModalMode('list'); }}
                         onSold={() => { setActiveItem(item); setModalMode('sold'); }}
+                        onDetails={() => { setActiveItem(item); setModalMode('details'); }}
                         item={{
                           ...item,
                           name: item.name ?? 'Unknown Item',
@@ -276,6 +278,12 @@ export default function Home() {
             />
           </div>
         </div>
+      )}
+      {modalMode === 'details' && activeItem && (
+        <ItemDetailsModal 
+          item={activeItem} 
+          onClose={() => setModalMode('none')} 
+        />
       )}
     </div>
   );

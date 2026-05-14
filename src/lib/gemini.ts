@@ -121,7 +121,9 @@ export async function flashScan(images: { data: string; mimeType: string }[]) {
   
   const prompt = `Perform a detailed analysis of this tool/item based on the provided images. 
   Extract as much deep metadata as possible to avoid needing a secondary scan.
+  Generate 4 PLATFORM DRAFTS for listing: ebay, fb, etsy, and shopify.
   Include a "confidence" score (0.0 to 1.0). If confidence is below 0.8 or critical info is missing, set "needs_pro" to true.
+  Estimate the physical weight in lbs and size in inches.
   
   Format as JSON: { 
     "name": "", 
@@ -130,11 +132,18 @@ export async function flashScan(images: { data: string; mimeType: string }[]) {
     "model_number": "",
     "short_description": "",
     "dimensions": "",
+    "estimated_weight_lbs": 0.0,
     "materials": "",
     "price_range": {"min": 0, "max": 0}, 
     "condition": "", 
     "confidence": 0.0, 
-    "needs_pro": false 
+    "needs_pro": false,
+    "drafts": {
+      "ebay": { "title": "", "description": "", "specs": "" },
+      "fb": { "title": "", "description": "", "specs": "" },
+      "etsy": { "title": "", "description": "", "specs": "" },
+      "shopify": { "title": "", "description": "", "specs": "" }
+    }
   }`;
 
   const result = await model.generateContent([

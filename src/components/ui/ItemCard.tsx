@@ -30,6 +30,7 @@ interface ItemCardProps {
   unitSystem?: 'imperial' | 'metric';
   onList?: (item: any) => void;
   onSold?: (item: any) => void;
+  onDetails?: (item: any) => void;
   item?: {
     id: string;
     name: string;
@@ -46,7 +47,7 @@ interface ItemCardProps {
   };
 }
 
-export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial', onList, onSold }: ItemCardProps) {
+export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial', onList, onSold, onDetails }: ItemCardProps) {
   const isScanning = status === 'scanning';
   const isSuccess = status === 'success';
   const isError = status === 'error';
@@ -317,7 +318,10 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
               </div>
             )}
           </div>
-          <button className="flex items-center gap-1 text-[10px] font-medium text-blue-400 hover:underline">
+          <button 
+            onClick={() => onDetails?.(item)}
+            className="flex items-center gap-1 text-[10px] font-medium text-blue-400 hover:underline"
+          >
             <Info className="h-3 w-3" />
             Details
           </button>

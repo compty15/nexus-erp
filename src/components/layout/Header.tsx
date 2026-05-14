@@ -17,12 +17,20 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#333] bg-[#0a0a0a]/80 backdrop-blur-md px-4 py-3">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-            <Activity className="h-5 w-5 text-white" />
+          <div className="flex items-center gap-2 mr-6">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+              <Activity className="h-5 w-5 text-white" />
+            </div>
+            <a href="/" className="text-xl font-bold tracking-tight text-white hover:text-blue-400 transition-colors">NEXUS</a>
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">NEXUS</span>
-        </div>
+
+          <nav className="hidden md:flex items-center gap-6 mr-auto">
+            <a href="/" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Active</a>
+            <a href="/inventory/sold" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Sold</a>
+            <a href="/shipping" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Shipping</a>
+            <a href="/inventory/deleted" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Trash</a>
+            <a href="/settings" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Settings</a>
+          </nav>
 
         <nav className="flex items-center gap-1 rounded-full border border-[#333] bg-[#1a1a1a] p-1">
           {engines.map((e) => {

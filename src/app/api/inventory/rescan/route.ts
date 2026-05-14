@@ -63,6 +63,13 @@ export async function POST(req: NextRequest) {
     const newTotalCost = previousCost + scanCost;
     
     const existingMetadata = item.metadata || {};
+    const existingHistory = existingMetadata.scan_history || [];
+    
+    const newHistoryEntry = {
+      timestamp: new Date().toISOString(),
+      model: modelType,
+      data: aiResult.data
+    };
     
     let updates: any = {
       cost_metadata: {
@@ -80,6 +87,7 @@ export async function POST(req: NextRequest) {
         name: aiResult.data.name,
         brand: aiResult.data.brand,
         category: aiResult.data.category,
+        weight_raw: aiResult.data.estimated_weight_lbs || item.weight_raw,
         price_range: aiResult.data.price_range || item.price_range,
         status: aiResult.data.needs_pro ? 'needs_review' : 'identified',
         metadata: {
@@ -89,7 +97,9 @@ export async function POST(req: NextRequest) {
           model_number: aiResult.data.model_number,
           dimensions: aiResult.data.dimensions,
           materials: aiResult.data.materials,
-          short_description: aiResult.data.short_description
+          short_description: aiResult.data.short_description,
+          drafts: aiResult.data.drafts || existingMetadata.drafts,
+          scan_history: [...existingHistory, newHistoryEntry]
         }
       };
     } else {
@@ -103,7 +113,8 @@ export async function POST(req: NextRequest) {
           serial_number: aiResult.data.serial_number,
           measurement: aiResult.data.measurement,
           wear_report: aiResult.data.wear_report,
-          drafts: aiResult.data.drafts || existingMetadata.drafts
+          drafts: aiResult.data.drafts || existingMetadata.drafts,
+          scan_history: [...existingHistory, newHistoryEntry]
         }
       };
     }

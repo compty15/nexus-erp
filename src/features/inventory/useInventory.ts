@@ -46,8 +46,9 @@ export function useDeleteItem() {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('inventory')
-        .delete()
+        .update({ status: 'deleted' })
         .eq('id', id);
+
       
       if (error) throw error;
       return true;

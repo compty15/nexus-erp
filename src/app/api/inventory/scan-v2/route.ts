@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
         brand: aiResult.data.brand,
         category: aiResult.data.category,
         price_range: aiResult.data.price_range || { min: 0, max: 0, currency: 'USD' },
+        weight_raw: aiResult.data.estimated_weight_lbs || 0,
         image_refs: imageUrls,
         cost_metadata: {
           last_scan_cost: scanCost,
@@ -58,7 +59,12 @@ export async function POST(req: NextRequest) {
           usage: aiResult.usage,
           confidence: aiResult.data.confidence,
           needs_pro: aiResult.data.needs_pro,
-          drafts: aiResult.data.drafts || {}
+          drafts: aiResult.data.drafts || {},
+          scan_history: [{
+            timestamp: new Date().toISOString(),
+            model: 'gemini-2.5-flash',
+            data: aiResult.data
+          }]
         }
       })
       .select()
