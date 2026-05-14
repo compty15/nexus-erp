@@ -71,6 +71,18 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
           </div>
         </div>
 
+        {/* Item Image */}
+        {item?.image && (
+          <div className="relative h-40 w-full overflow-hidden rounded-xl border border-[#222] bg-[#0a0a0a]">
+            {/* Using standard img for now since we don't have domains configured in next.config.js for next/image */}
+            <img 
+              src={item.image} 
+              alt={item.name} 
+              className="h-full w-full object-cover opacity-90 transition-opacity hover:opacity-100"
+            />
+          </div>
+        )}
+
         {/* Content Area */}
         <div className="min-h-[60px] flex flex-col justify-center">
           <AnimatePresence mode="wait">
