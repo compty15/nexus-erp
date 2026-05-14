@@ -35,10 +35,22 @@ export class JobOrchestrator {
 
       const { uploadToStorage } = await import('@/shared/lib/upload');
       
+      const uploadWithRetry = async (file: File, bucket: string, retries = 3): Promise<string> => {
+        try {
+          return await uploadToStorage(file, bucket);
+        } catch (err) {
+          if (retries > 0) {
+            console.log(`Retrying upload for ${file.name}... (${retries} left)`);
+            await new Promise(r => setTimeout(r, 1000));
+            return uploadWithRetry(file, bucket, retries - 1);
+          }
+          throw err;
+        }
+      };
+
       const storageUrls = await Promise.all(
         files.map(async (file) => {
-          // Optional: we can still compress client-side here if needed, but for OCR we upload raw
-          return await uploadToStorage(file, 'raw_images');
+          return await uploadWithRetry(file, 'raw_images');
         })
       );
 

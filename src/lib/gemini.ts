@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 
 // Approximate costs per 1k tokens (USD)
 const COSTS = {
-  "gemini-2.0-flash": { input: 0.0001, output: 0.0004 },
+  "gemini-2.5-flash": { input: 0.0001, output: 0.0004 },
   "gemini-1.5-pro": { input: 0.00125, output: 0.00375 },
   "gemini-2.0-flash-thinking-preview-01-21": { input: 0.0001, output: 0.0004 },
 };
@@ -14,7 +14,7 @@ const COSTS = {
 export type ModelType = "flash" | "pro" | "thinking";
 
 const MODEL_MAP: Record<ModelType, string> = {
-  flash: "gemini-2.0-flash",
+  flash: "gemini-2.5-flash",
   pro: "gemini-1.5-pro",
   thinking: "gemini-2.0-flash-thinking-preview-01-21",
 };
@@ -55,7 +55,7 @@ export async function updateModelStats(model: ModelType, cost: number) {
  */
 export function calculateBurnRate(model: ModelType, usage: any) {
   const modelId = MODEL_MAP[model] as keyof typeof COSTS;
-  const pricing = COSTS[modelId] || COSTS["gemini-2.0-flash"];
+  const pricing = COSTS[modelId] || COSTS["gemini-2.5-flash"];
   
   const inputCost = (usage.promptTokenCount / 1000) * pricing.input;
   const outputCost = (usage.candidatesTokenCount / 1000) * pricing.output;
