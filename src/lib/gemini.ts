@@ -4,19 +4,23 @@ import { supabase } from "./supabase";
 const API_KEY = process.env.GEMINI_API_KEY || "";
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-// Approximate costs per 1k tokens (USD)
+// Approximate costs per 1k tokens (USD) - Estimates for newer models
 const COSTS = {
   "gemini-2.5-flash": { input: 0.0001, output: 0.0004 },
-  "gemini-1.5-pro": { input: 0.00125, output: 0.00375 },
-  "gemini-2.0-flash-thinking-preview-01-21": { input: 0.0001, output: 0.0004 },
+  "gemini-2.5-pro": { input: 0.00125, output: 0.00375 },
+  "gemini-3.0-flash": { input: 0.0001, output: 0.0004 },
+  "gemini-3.0-pro": { input: 0.00125, output: 0.00375 },
+  "gemini-3.1-pro": { input: 0.00125, output: 0.00375 },
 };
 
-export type ModelType = "flash" | "pro" | "thinking";
+export type ModelType = "flash" | "pro-2.5" | "flash-3.0" | "pro-3.0" | "pro-3.1";
 
 const MODEL_MAP: Record<ModelType, string> = {
-  flash: "gemini-2.5-flash",
-  pro: "gemini-1.5-pro",
-  thinking: "gemini-2.0-flash-thinking-preview-01-21",
+  "flash": "gemini-2.5-flash",
+  "pro-2.5": "gemini-2.5-pro",
+  "flash-3.0": "gemini-3.0-flash",
+  "pro-3.0": "gemini-3.0-pro",
+  "pro-3.1": "gemini-3.1-pro",
 };
 
 /**
@@ -148,7 +152,7 @@ export async function flashScan(images: { data: string; mimeType: string }[]) {
 /**
  * Stage 2: Deep Dive (OCR & Metrology)
  */
-export async function deepDive(images: { data: string; mimeType: string }[], modelType: ModelType = "pro") {
+export async function deepDive(images: { data: string; mimeType: string }[], modelType: ModelType = "pro-2.5") {
   const model = genAI.getGenerativeModel({ 
     model: MODEL_MAP[modelType],
     generationConfig: { responseMimeType: "application/json" }

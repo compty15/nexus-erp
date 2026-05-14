@@ -104,7 +104,7 @@ CREATE TABLE public.model_stats (
 
 -- Initial seed for model stats
 INSERT INTO public.model_stats (model_id) VALUES 
-('gemini-1.5-flash'), ('gemini-1.5-pro'), ('gemini-2.0-flash-thinking-preview-01-21');
+('gemini-2.5-flash'), ('gemini-2.5-pro'), ('gemini-3.0-flash'), ('gemini-3.0-pro'), ('gemini-3.1-pro');
 
 -- Indexes
 CREATE INDEX idx_jobs_status ON public.jobs(status);

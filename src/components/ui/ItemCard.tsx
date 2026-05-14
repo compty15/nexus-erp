@@ -85,7 +85,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
     }
   };
 
-  const handleRescan = async (model: 'flash' | 'pro' | 'thinking') => {
+  const handleRescan = async (model: string) => {
     if (!item?.id) return;
     setIsRescanning(true);
     try {
@@ -101,7 +101,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
       addNotification({
         type: 'success',
         title: 'Rescan Complete',
-        message: `Successfully re-appraised with Gemini ${model.toUpperCase()}`
+        message: `Successfully re-appraised with Gemini ${model.replace('-', ' ').toUpperCase()}`
       });
       setShowRescan(false);
     } catch (err: any) {
@@ -279,16 +279,22 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="flex gap-2 overflow-hidden"
+                  className="flex gap-2 overflow-x-auto pb-2 no-scrollbar"
                 >
-                  {['flash', 'pro', 'thinking'].map((model) => (
+                  {[
+                    { id: 'flash', label: '2.5 Flash' },
+                    { id: 'pro-2.5', label: '2.5 Pro' },
+                    { id: 'flash-3.0', label: '3.0 Flash' },
+                    { id: 'pro-3.0', label: '3.0 Pro' },
+                    { id: 'pro-3.1', label: '3.1 Pro' },
+                  ].map((model) => (
                     <button
-                      key={model}
+                      key={model.id}
                       disabled={isRescanning}
-                      onClick={() => handleRescan(model as any)}
-                      className="flex-1 rounded-lg bg-[#222] py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-[#333] transition-all capitalize"
+                      onClick={() => handleRescan(model.id)}
+                      className="whitespace-nowrap rounded-lg bg-[#222] px-3 py-2 text-[10px] font-bold text-gray-300 hover:text-white hover:bg-[#333] transition-all"
                     >
-                      {model}
+                      {model.label}
                     </button>
                   ))}
                 </motion.div>
