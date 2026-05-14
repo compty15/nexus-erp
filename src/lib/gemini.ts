@@ -55,7 +55,7 @@ export async function updateModelStats(model: ModelType, cost: number) {
  */
 export function calculateBurnRate(model: ModelType, usage: any) {
   const modelId = MODEL_MAP[model] as keyof typeof COSTS;
-  const pricing = COSTS[modelId] || COSTS["gemini-1.5-flash"];
+  const pricing = COSTS[modelId] || COSTS["gemini-2.0-flash"];
   
   const inputCost = (usage.promptTokenCount / 1000) * pricing.input;
   const outputCost = (usage.candidatesTokenCount / 1000) * pricing.output;
