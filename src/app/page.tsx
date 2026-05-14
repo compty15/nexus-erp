@@ -148,7 +148,7 @@ export default function Home() {
           
           <input 
             type="file" 
-            accept="image/*,video/*,audio/*,application/pdf" 
+            accept="image/*,video/*,audio/*,application/pdf,.heic,.heif,.dng" 
             multiple
             className="hidden" 
             ref={fileInputRef}

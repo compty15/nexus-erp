@@ -75,7 +75,10 @@ export class JobOrchestrator {
 
       const storageUrls = await Promise.all(
         files.map(async (file) => {
-          if (file.type.startsWith('image/')) {
+          const isImage = file.type.startsWith('image/') || 
+                          ['.heic', '.heif', '.dng'].some(ext => file.name.toLowerCase().endsWith(ext));
+
+          if (isImage) {
             const processedFile = await compressImage(file);
             return await uploadWithRetry(processedFile, 'raw_images');
           }

@@ -1,6 +1,28 @@
 import imageCompression from 'browser-image-compression';
 
 export async function compressImage(file: File): Promise<File> {
+  // 1. Handle HEIC/HEIF (common on iPhones)
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || 
+                 file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+
+  let activeFile = file;
+
+  if (isHeic) {
+    try {
+      console.log('HEIC detected, converting...');
+      const heic2any = (await import('heic2any')).default;
+      const blob = await heic2any({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: 0.8
+      });
+      activeFile = new File([Array.isArray(blob) ? blob[0] : blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: 'image/jpeg' });
+    } catch (err) {
+      console.error('HEIC conversion failed:', err);
+      // Fallback to original file and hope the compression library or Gemini can handle it
+    }
+  }
+
   const options = {
     maxSizeMB: 4,
     maxWidthOrHeight: 4000,
@@ -8,21 +30,21 @@ export async function compressImage(file: File): Promise<File> {
     fileType: 'image/jpeg' as any, // Forcing JPEG as it's the most robust for all Gemini versions
   };
 
-  // If it's a problematic type like DNG, we should try to force a conversion
-  const isProblematic = file.type === 'image/x-adobe-dng' || file.name.toLowerCase().endsWith('.dng');
+  // 2. Handle Problematic types like DNG (Adobe Raw)
+  const isDng = activeFile.type === 'image/x-adobe-dng' || activeFile.name.toLowerCase().endsWith('.dng');
 
   try {
-    const compressedFile = await imageCompression(file, options);
+    const compressedFile = await imageCompression(activeFile, options);
     return compressedFile;
   } catch (error) {
     console.error('Initial compression failed, attempting hard conversion:', error);
     
     // Hard conversion fallback using Canvas
     try {
-      return await hardConvertImage(file);
+      return await hardConvertImage(activeFile);
     } catch (hardError) {
       console.error('Hard conversion failed:', hardError);
-      return file;
+      return activeFile;
     }
   }
 }
