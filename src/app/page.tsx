@@ -194,12 +194,39 @@ export default function Home() {
                 animate="show"
                 className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               >
-                {/* Pending Jobs Display */}
-                {pendingJobs.filter(j => j.status !== 'completed' && j.status !== 'failed').map(job => (
+                {/* Pending & Failed Jobs Display */}
+                {pendingJobs.filter(j => j.status !== 'completed').map(job => (
                   <motion.div key={job.id} variants={itemVariants}>
-                     <div className="flex h-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-blue-500/30 bg-blue-500/5 animate-pulse p-6">
-                      <Activity className="h-10 w-10 text-blue-500 mb-4" />
-                      <p className="text-sm font-medium text-blue-400">Processing {job.payload?.fileCount} item(s)...</p>
+                    <div className={`flex h-full flex-col items-center justify-center rounded-3xl border-2 border-dashed p-6 transition-all ${
+                      job.status === 'failed' ? 'border-red-500/50 bg-red-500/5' : 'border-blue-500/30 bg-blue-500/5 animate-pulse'
+                    }`}>
+                      {job.status === 'failed' ? (
+                        <>
+                          <div className="mb-4 rounded-full bg-red-500/10 p-3">
+                            <Activity className="h-8 w-8 text-red-500" />
+                          </div>
+                          <p className="text-sm font-bold text-red-400 text-center">Scan Failed</p>
+                          <p className="text-[10px] text-red-300/60 mt-1 text-center line-clamp-2 px-2">
+                            {job.error || 'Unknown Error'}
+                          </p>
+                          <button 
+                            onClick={() => useQueueStore.getState().removeJob(job.id)}
+                            className="mt-4 rounded-full bg-red-500/20 px-4 py-2 text-[10px] font-bold text-red-400 hover:bg-red-500/30 transition-all"
+                          >
+                            Clear Error
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <Activity className="h-10 w-10 text-blue-500 mb-4" />
+                          <p className="text-sm font-medium text-blue-400 text-center">
+                            Processing {job.payload?.fileCount} item(s)...
+                          </p>
+                          <p className="text-[10px] text-blue-400/50 mt-1 uppercase tracking-widest font-black">
+                            {job.status}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 ))}
