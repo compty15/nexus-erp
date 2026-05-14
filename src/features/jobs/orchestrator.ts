@@ -50,7 +50,9 @@ export class JobOrchestrator {
 
       const storageUrls = await Promise.all(
         files.map(async (file) => {
-          return await uploadWithRetry(file, 'raw_images');
+          // Force compression/conversion to WebP/JPEG
+          const processedFile = await compressImage(file);
+          return await uploadWithRetry(processedFile, 'raw_images');
         })
       );
 
