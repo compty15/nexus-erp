@@ -44,7 +44,7 @@ CREATE TABLE public.inventory (
 -- 3. Financials Table (ERP Revenue/Expense Tracking)
 CREATE TABLE public.financials (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    branch_id UUID REFERENCES public.branches(id) ON DELETE CASCADE,
+    branch_id TEXT REFERENCES public.branches(id) ON DELETE CASCADE,
     inventory_id UUID REFERENCES public.inventory(id) ON DELETE SET NULL,
     type TEXT NOT NULL CHECK (type IN ('revenue', 'expense', 'fee', 'shipping', 'labor', 'utility', 'wear')),
     amount NUMERIC(12, 2) NOT NULL,
@@ -58,10 +58,10 @@ CREATE TABLE public.financials (
 -- 4. System Logs & AI Quotas (Health Monitoring)
 CREATE TABLE public.system_metrics (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    metric_name TEXT NOT NULL, -- 'gemini_tokens', 'supabase_rows', 'api_cost'
+    metric_name TEXT NOT NULL,
     current_value NUMERIC DEFAULT 0,
     daily_limit NUMERIC,
-    alert_threshold NUMERIC, -- Percentage (e.g. 0.8 for 80%)
+    alert_threshold NUMERIC,
     reset_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -71,7 +71,7 @@ CREATE TABLE public.activity_logs (
     event_type TEXT NOT NULL,
     severity TEXT DEFAULT 'info',
     message TEXT,
-    metadata JSONB DEFAULT '{}'::jsonb, -- Store token usage, model_id, etc.
+    metadata JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -79,18 +79,18 @@ CREATE TABLE public.activity_logs (
 CREATE TABLE public.jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
-    type TEXT NOT NULL, -- 'flash_scan', 'pro_scan', 'grouping'
+    type TEXT NOT NULL,
     payload JSONB DEFAULT '{}'::jsonb,
     result JSONB DEFAULT '{}'::jsonb,
     error TEXT,
-    user_id UUID, -- If auth is enabled later
+    user_id UUID,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 6. Model Usage Statistics (Burn Rate Guardrails)
 CREATE TABLE public.model_stats (
-    model_id TEXT PRIMARY KEY, -- 'gemini-1.5-flash', etc.
+    model_id TEXT PRIMARY KEY,
     total_calls INTEGER DEFAULT 0,
     all_time_high NUMERIC(10, 6) DEFAULT 0,
     all_time_low NUMERIC(10, 6) DEFAULT 999.99,
@@ -112,7 +112,7 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('raw_images', 'raw_images', true)
 ON CONFLICT (id) DO NOTHING;
 
--- RLS: Allow public uploads (for now, but should be restricted to authenticated users)
+-- RLS: Allow public uploads
 CREATE POLICY "Public Uploads"
 ON storage.objects FOR INSERT TO public
 WITH CHECK (bucket_id = 'raw_images');
@@ -124,7 +124,11 @@ USING (bucket_id = 'raw_images');
 -- Enable RLS on core tables
 ALTER TABLE public.inventory ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.financials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.model_stats ENABLE ROW LEVEL SECURITY;
 
--- Temporary public policies while auth is being configured
+-- Temporary public policies
 CREATE POLICY "Public full access to inventory" ON public.inventory FOR ALL USING (true);
 CREATE POLICY "Public full access to jobs" ON public.jobs FOR ALL USING (true);
+CREATE POLICY "Public full access to financials" ON public.financials FOR ALL USING (true);
+CREATE POLICY "Public read only model_stats" ON public.model_stats FOR SELECT USING (true);

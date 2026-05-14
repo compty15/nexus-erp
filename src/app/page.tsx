@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, 
   TrendingUp, 
@@ -32,13 +32,23 @@ const itemVariants = {
   show: { opacity: 1, y: 0 }
 };
 
+import { useModelStats } from '@/features/analytics/useModelStats';
+import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
+
 export default function Home() {
   const { engine } = useEngine();
   const { addNotification } = useNotifications();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [view, setView] = React.useState<'inventory' | 'analytics'>('inventory');
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   // React Query for bulletproof data fetching
-  const { data: items = [], isLoading, error } = useInventory();
+  const { data: items = [], isLoading: isInvLoading, error: invError } = useInventory();
+  const { data: modelStats = [], isLoading: isStatsLoading } = useModelStats();
   
   // Zustand for Job State
   const pendingJobs = useQueueStore((state) => state.pendingJobs);
@@ -48,6 +58,7 @@ export default function Home() {
   const [modalMode, setModalMode] = React.useState<'none' | 'sold' | 'list'>('none');
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // ... (rest of handleFileSelect remains same)
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
@@ -59,8 +70,6 @@ export default function Home() {
         duration: 3000
       });
 
-      // Hand off to the Orchestrator
-      // This will survive component unmounts and handles the heavy lifting
       await JobOrchestrator.startInventoryScan(files, 'BRANCH_A_PROD', engine);
 
     } catch (err: any) {
@@ -70,17 +79,13 @@ export default function Home() {
         message: err.message || 'An unexpected error occurred.' 
       });
     }
-    
-    // Reset file input
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const triggerFileSelect = () => {
-    fileInputRef.current?.click();
-  };
+  if (!isMounted) return null;
 
-  if (error) {
-    return <div className="text-red-500 p-8">Failed to load inventory: {error.message}</div>;
+  if (invError) {
+    return <div className="text-red-500 p-8">Failed to load inventory: {invError.message}</div>;
   }
 
   return (
@@ -138,84 +143,127 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Item Grid */}
-      <div className="mb-8 flex items-center justify-between">
+      {/* View Switcher Tabs */}
+      <div className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex p-1 bg-[#111] rounded-2xl border border-[#222] w-fit">
+          <button 
+            onClick={() => setView('inventory')}
+            className={`px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+              view === 'inventory' ? 'bg-[#222] text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            Inventory
+          </button>
+          <button 
+            onClick={() => setView('analytics')}
+            className={`px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+              view === 'analytics' ? 'bg-[#222] text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            Financials
+          </button>
+        </div>
+
         <div className="flex items-center gap-3">
-          <Package className="h-6 w-6 text-blue-400" />
-          <h2 className="text-2xl font-bold text-white">Branch Inventory</h2>
+          <Activity className="h-4 w-4 text-blue-500 animate-pulse" />
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
+            Branch: Branch A (Production)
+          </span>
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="h-64 rounded-3xl bg-[#111] animate-pulse border border-[#222]" />
-          ))}
-        </div>
-      ) : (
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-        >
-          {/* Pending Jobs Display */}
-          {pendingJobs.filter(j => j.status !== 'completed' && j.status !== 'failed').map(job => (
-            <motion.div key={job.id} variants={itemVariants}>
-               <div className="flex h-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-blue-500/30 bg-blue-500/5 animate-pulse p-6">
-                <Activity className="h-10 w-10 text-blue-500 mb-4" />
-                <p className="text-sm font-medium text-blue-400">Processing {job.payload?.fileCount} item(s)...</p>
+      <AnimatePresence mode="wait">
+        {view === 'inventory' ? (
+          <motion.div 
+            key="inventory"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+          >
+            {isInvLoading ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="h-64 rounded-3xl bg-[#111] animate-pulse border border-[#222]" />
+                ))}
               </div>
-            </motion.div>
-          ))}
+            ) : (
+              <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              >
+                {/* Pending Jobs Display */}
+                {pendingJobs.filter(j => j.status !== 'completed' && j.status !== 'failed').map(job => (
+                  <motion.div key={job.id} variants={itemVariants}>
+                     <div className="flex h-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-blue-500/30 bg-blue-500/5 animate-pulse p-6">
+                      <Activity className="h-10 w-10 text-blue-500 mb-4" />
+                      <p className="text-sm font-medium text-blue-400">Processing {job.payload?.fileCount} item(s)...</p>
+                    </div>
+                  </motion.div>
+                ))}
 
-          {/* Actual Items */}
-          {items.filter(i => i.status !== 'sold').map((item) => (
-            <motion.div key={item.id} variants={itemVariants}>
-              <div className="group relative">
-                <ItemCard 
-                  item={{
-                    ...item,
-                    name: item.name ?? 'Unknown Item',
-                    brand: item.brand ?? 'Unknown Brand',
-                    category: item.category ?? 'Uncategorized',
-                    price: item.price_range ? `$${item.price_range.min} - $${item.price_range.max}` : 'Unknown',
-                    cost: `$${item.cost_metadata?.last_scan_cost?.toFixed(2) || '0.00'}`,
-                    totalCost: `$${item.cost_metadata?.total_scan_cost?.toFixed(2) || '0.00'}`,
-                    weight: item.weight_raw ?? undefined,
-                    length: item.length_in ?? undefined,
-                    width: item.width_in ?? undefined,
-                    height: item.height_in ?? undefined,
-                    image: item.image_refs?.[0] || null
-                  }} 
-                />
-                <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button 
-                    onClick={() => { setActiveItem(item); setModalMode('list'); }}
-                    className="p-2 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-500"
-                  >
-                    List
-                  </button>
-                  <button 
-                    onClick={() => { setActiveItem(item); setModalMode('sold'); }}
-                    className="p-2 rounded-full bg-emerald-600 text-white shadow-xl hover:bg-emerald-500"
-                  >
-                    Sold
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
+                {/* Actual Items */}
+                {items.filter(i => i.status !== 'sold').map((item) => (
+                  <motion.div key={item.id} variants={itemVariants}>
+                    <div className="group relative">
+                      <ItemCard 
+                        item={{
+                          ...item,
+                          name: item.name ?? 'Unknown Item',
+                          brand: item.brand ?? 'Unknown Brand',
+                          category: item.category ?? 'Uncategorized',
+                          price: item.price_range ? `$${item.price_range.min} - $${item.price_range.max}` : 'Unknown',
+                          cost: `$${item.cost_metadata?.last_scan_cost?.toFixed(2) || '0.00'}`,
+                          totalCost: `$${item.cost_metadata?.total_scan_cost?.toFixed(2) || '0.00'}`,
+                          weight: item.weight_raw ?? undefined,
+                          length: item.length_in ?? undefined,
+                          width: item.width_in ?? undefined,
+                          height: item.height_in ?? undefined,
+                          image: item.image_refs?.[0] || null
+                        }} 
+                      />
+                      <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => { setActiveItem(item); setModalMode('list'); }}
+                          className="p-2 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-500"
+                        >
+                          List
+                        </button>
+                        <button 
+                          onClick={() => { setActiveItem(item); setModalMode('sold'); }}
+                          className="p-2 rounded-full bg-emerald-600 text-white shadow-xl hover:bg-emerald-500"
+                        >
+                          Sold
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="analytics"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <AnalyticsDashboard 
+              inventory={items} 
+              modelStats={modelStats} 
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modals */}
       {modalMode === 'sold' && activeItem && (
         <MarkAsSoldModal
           item={activeItem}
-          defaultFeePercent={13.25} // Should fetch from settings
+          defaultFeePercent={13.25} 
           onConfirm={(data) => {
-            // Placeholder: React Query Mutation here
             setModalMode('none');
           }}
           onCancel={() => setModalMode('none')}
@@ -236,6 +284,7 @@ export default function Home() {
             <ListingAssistant 
               item={activeItem} 
               drafts={activeItem.metadata?.drafts || {}} 
+              onStatusUpdate={() => setModalMode('none')}
             />
           </div>
         </div>

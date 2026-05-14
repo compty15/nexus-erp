@@ -10,9 +10,11 @@ import {
   ShoppingBag, 
   ShoppingCart,
   ExternalLink,
-  ClipboardList
+  ClipboardList,
+  Activity
 } from 'lucide-react';
 import { useNotifications } from '@/lib/notifications';
+import { ListingService, Platform } from '@/lib/listings';
 
 interface ListingAssistantProps {
   item: any;
@@ -22,22 +24,53 @@ interface ListingAssistantProps {
     etsy: any;
     shopify: any;
   };
+  onStatusUpdate?: () => void;
 }
 
-export default function ListingAssistant({ item, drafts }: ListingAssistantProps) {
-  const [platform, setPlatform] = useState<'ebay' | 'fb' | 'etsy' | 'shopify'>('ebay');
+export default function ListingAssistant({ item, drafts, onStatusUpdate }: ListingAssistantProps) {
+  const [platform, setPlatform] = useState<Platform>('ebay');
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [isListing, setIsListing] = useState(false);
   const { addNotification } = useNotifications();
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     addNotification({ 
-      type: 'success', 
+      type: 'info', 
       title: 'Copied', 
       message: `${field} ready to paste on ${platform.toUpperCase()}` 
     });
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleMarkAsListed = async () => {
+    setIsListing(true);
+    try {
+      const currentDraft = drafts[platform] || drafts.ebay;
+      await ListingService.markAsListed(item.id, platform, {
+        title: currentDraft.title,
+        description: currentDraft.description,
+        price: currentDraft.price,
+        specs: currentDraft.specs
+      });
+
+      addNotification({
+        type: 'success',
+        title: 'Listed Successfully',
+        message: `Item marked as active on ${platform.toUpperCase()}`
+      });
+
+      if (onStatusUpdate) onStatusUpdate();
+    } catch (err: any) {
+      addNotification({
+        type: 'error',
+        title: 'Listing Failed',
+        message: err.message
+      });
+    } finally {
+      setIsListing(false);
+    }
   };
 
   const platforms = [
@@ -47,7 +80,8 @@ export default function ListingAssistant({ item, drafts }: ListingAssistantProps
     { id: 'shopify', icon: ShoppingCart, label: 'Shopify', color: 'bg-green-600' }
   ];
 
-  const currentDraft = drafts[platform] || drafts.ebay;
+  const currentDraft = drafts[platform] || drafts.ebay || { title: 'No Draft', price: 0, description: '', specs: '' };
+  const isAlreadyListed = ListingService.getListingStatus(item, platform) === 'active';
 
   return (
     <div className="rounded-[32px] border border-[#222] bg-[#111] overflow-hidden shadow-2xl">
@@ -142,13 +176,36 @@ export default function ListingAssistant({ item, drafts }: ListingAssistantProps
           </div>
         </div>
 
-        <button 
-          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-[#333] bg-[#222] py-4 text-xs font-bold text-white hover:bg-[#333] transition-all"
-          onClick={() => window.open(getPlatformUrl(platform, item), '_blank')}
-        >
-          <ExternalLink className="h-4 w-4" />
-          Open {platform.toUpperCase()} Listing Page
-        </button>
+        <div className="grid grid-cols-2 gap-4">
+          <button 
+            className="flex items-center justify-center gap-2 rounded-2xl border border-[#333] bg-[#222] py-4 text-xs font-bold text-white hover:bg-[#333] transition-all"
+            onClick={() => window.open(getPlatformUrl(platform, item), '_blank')}
+          >
+            <ExternalLink className="h-4 w-4" />
+            Open {platform.toUpperCase()}
+          </button>
+
+          <button 
+            disabled={isListing || isAlreadyListed}
+            onClick={handleMarkAsListed}
+            className={`flex items-center justify-center gap-2 rounded-2xl py-4 text-xs font-bold transition-all ${
+              isAlreadyListed 
+                ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30' 
+                : 'bg-white text-black hover:bg-gray-200'
+            }`}
+          >
+            {isListing ? (
+              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                <Activity className="h-4 w-4" />
+              </motion.div>
+            ) : isAlreadyListed ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <ShoppingBag className="h-4 w-4" />
+            )}
+            {isAlreadyListed ? 'Listed' : 'Mark as Listed'}
+          </button>
+        </div>
       </div>
     </div>
   );
