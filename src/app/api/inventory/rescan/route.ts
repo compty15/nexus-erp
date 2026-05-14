@@ -47,9 +47,9 @@ export async function POST(req: NextRequest) {
     let aiResult;
     let scanCost = 0;
     
-    if (modelType === 'flash') {
-      aiResult = await flashScan(imageParts);
-      scanCost = calculateBurnRate('flash', aiResult.usage);
+    if (modelType.includes('flash')) {
+      aiResult = await flashScan(imageParts, modelType as ModelType);
+      scanCost = calculateBurnRate(modelType as ModelType, aiResult.usage);
     } else {
       aiResult = await deepDive(imageParts, modelType as ModelType);
       scanCost = calculateBurnRate(modelType as ModelType, aiResult.usage);
@@ -68,53 +68,27 @@ export async function POST(req: NextRequest) {
       data: aiResult.data
     };
     
+    // Core fields shared by all models in rescan mode
     let updates: any = {
+      name: aiResult.data.name || item.name,
+      brand: aiResult.data.brand || item.brand,
+      category: aiResult.data.category || item.category,
+      weight_raw: aiResult.data.estimated_weight_lbs || item.weight_raw,
+      price_range: aiResult.data.price_range || item.price_range,
+      status: aiResult.data.needs_pro ? 'needs_review' : 'identified',
       cost_metadata: {
         ...item.cost_metadata,
         last_scan_cost: scanCost,
         total_scan_cost: newTotalCost,
       },
+      metadata: {
+        ...existingMetadata,
+        ...aiResult.data, // Spread everything from AI
+        drafts: aiResult.data.drafts || existingMetadata.drafts,
+        scan_history: [...existingHistory, newHistoryEntry]
+      },
       updated_at: new Date().toISOString()
     };
-
-    if (modelType === 'flash') {
-      // Flash scan updates core fields
-      updates = {
-        ...updates,
-        name: aiResult.data.name,
-        brand: aiResult.data.brand,
-        category: aiResult.data.category,
-        weight_raw: aiResult.data.estimated_weight_lbs || item.weight_raw,
-        price_range: aiResult.data.price_range || item.price_range,
-        status: aiResult.data.needs_pro ? 'needs_review' : 'identified',
-        metadata: {
-          ...existingMetadata,
-          confidence: aiResult.data.confidence,
-          needs_pro: aiResult.data.needs_pro,
-          model_number: aiResult.data.model_number,
-          dimensions: aiResult.data.dimensions,
-          materials: aiResult.data.materials,
-          short_description: aiResult.data.short_description,
-          drafts: aiResult.data.drafts || existingMetadata.drafts,
-          scan_history: [...existingHistory, newHistoryEntry]
-        }
-      };
-    } else {
-      // Pro/Thinking deep dive appends metadata and drafts
-      updates = {
-        ...updates,
-        status: 'identified', // clear needs_review
-        metadata: {
-          ...existingMetadata,
-          needs_pro: false,
-          serial_number: aiResult.data.serial_number,
-          measurement: aiResult.data.measurement,
-          wear_report: aiResult.data.wear_report,
-          drafts: aiResult.data.drafts || existingMetadata.drafts,
-          scan_history: [...existingHistory, newHistoryEntry]
-        }
-      };
-    }
 
     // 5. Update DB
     const { data: updatedItem, error: updateError } = await supabase

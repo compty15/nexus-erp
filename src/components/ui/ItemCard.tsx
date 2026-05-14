@@ -129,7 +129,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
     >
       <div className="flex flex-col gap-4">
         {/* Top Header */}
-        <div className="flex items-center justify-between">
+        <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className={`p-2 rounded-lg ${isScanning ? 'bg-blue-500/10' : 'bg-[#333]'}`}>
               <Package className={`h-5 w-5 ${isScanning ? 'text-blue-400' : 'text-gray-400'}`} />
@@ -164,7 +164,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
 
         {/* Item Images Gallery */}
         {(item?.image_refs && item.image_refs.length > 0) ? (
-          <div className="relative flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="relative z-0 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {item.image_refs.map((imgUrl, idx) => (
               <div key={idx} className="relative h-40 w-32 shrink-0 overflow-hidden rounded-xl border border-[#222] bg-[#0a0a0a] group/img">
                 <img 
@@ -253,7 +253,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
 
         {/* Action Buttons */}
         {item && (
-          <div className="flex flex-col gap-2">
+          <div className="relative z-10 flex flex-col gap-2">
             <div className="flex gap-2">
               <button 
                 onClick={() => setShowRescan(!showRescan)}

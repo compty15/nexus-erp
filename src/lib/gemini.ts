@@ -113,9 +113,9 @@ export async function groupPhotos(images: { data: string; mimeType: string }[]) 
  * Stage 1: Flash Scan
  * Rapid identification with deeper initial metadata extraction
  */
-export async function flashScan(images: { data: string; mimeType: string }[]) {
+export async function flashScan(images: { data: string; mimeType: string }[], modelType: ModelType = "flash") {
   const model = genAI.getGenerativeModel({ 
-    model: MODEL_MAP.flash,
+    model: MODEL_MAP[modelType],
     generationConfig: { responseMimeType: "application/json" }
   });
   
@@ -178,6 +178,11 @@ export async function deepDive(images: { data: string; mimeType: string }[], mod
   - shopify: Clean, professional, e-commerce formatted.
   
   Format as JSON: { 
+    "name": "", 
+    "brand": "", 
+    "category": "", 
+    "price_range": {"min": 0, "max": 0}, 
+    "estimated_weight_lbs": 0.0,
     "serial_number": "", 
     "measurement": "", 
     "wear_report": "",
