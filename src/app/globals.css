@@ -135,6 +135,30 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Mobile Simulation Mode */
+  .mobile-mode .layout-container {
+    max-width: 430px;
+    margin-left: auto;
+    margin-right: auto;
+    border-left: 1px solid var(--glass-border);
+    border-right: 1px solid var(--glass-border);
+    background: rgba(0, 0, 0, 0.2);
+    min-height: calc(100vh - 5rem);
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
+  }
+
+  .mobile-mode h1 {
+    font-size: 2.5rem !important;
+  }
+
+  .mobile-mode .titanium-panel {
+    padding: 1.5rem !important;
+  }
+
+  .mobile-mode .grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @keyframes smoke-flow {

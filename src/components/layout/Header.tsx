@@ -1,14 +1,16 @@
 'use client';
 
-import { Cpu, Zap, BrainCircuit, Activity } from 'lucide-react';
+import { Cpu, Zap, BrainCircuit, Activity, Smartphone, Monitor } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useEngine, Engine } from '@/lib/engine-context';
+import { useUI } from '@/lib/ui-context';
 import { usePathname } from 'next/navigation';
 import { usePlan } from '@/shared/lib/hooks/usePlan';
 import TaskCenter from '../dashboard/TaskCenter';
 
 export default function Header() {
   const { engine, setEngine } = useEngine();
+  const { viewMode, toggleViewMode } = useUI();
 
   const engines = [
     { id: 'flash', label: 'FLS-2.5', icon: Zap, color: 'text-blue-400' },
@@ -103,6 +105,13 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+          <button
+            onClick={toggleViewMode}
+            className="group flex h-8 w-8 items-center justify-center rounded-xl border border-white/5 bg-black/40 text-titanium-400 hover:text-white transition-all backdrop-blur-md"
+            title={viewMode === 'desktop' ? 'Simulate Mobile' : 'Switch to Desktop'}
+          >
+            {viewMode === 'desktop' ? <Smartphone className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
+          </button>
           <TaskCenter />
           <div className="hidden items-center gap-4 md:flex border-l border-white/10 pl-4">
             <div className="flex flex-col items-end">
