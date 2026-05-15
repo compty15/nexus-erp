@@ -19,5 +19,15 @@ export async function uploadToStorage(file: File, bucket = 'raw_images'): Promis
 
   const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
   
-  return data.publicUrl;
+  return { path: filePath, publicUrl: data.publicUrl };
+}
+
+export async function deleteFromStorage(paths: string[], bucket = 'raw_images'): Promise<void> {
+  const { error } = await supabase.storage
+    .from(bucket)
+    .remove(paths);
+
+  if (error) {
+    console.error(`Storage Deletion Error: ${error.message}`);
+  }
 }

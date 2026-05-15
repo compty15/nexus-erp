@@ -8,6 +8,7 @@ interface QueueState {
   addJob: (job: Job) => void;
   updateJob: (id: string, updates: Partial<Job>) => void;
   removeJob: (id: string) => void;
+  cancelJob: (id: string) => void;
   setActiveJob: (id: string | null) => void;
 }
 
@@ -23,6 +24,10 @@ export const useQueueStore = create<QueueState>()(
         )
       })),
       removeJob: (id) => set((state) => ({
+        pendingJobs: state.pendingJobs.filter(job => job.id !== id),
+        activeJobId: state.activeJobId === id ? null : state.activeJobId
+      })),
+      cancelJob: (id) => set((state) => ({
         pendingJobs: state.pendingJobs.filter(job => job.id !== id),
         activeJobId: state.activeJobId === id ? null : state.activeJobId
       })),

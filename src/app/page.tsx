@@ -9,7 +9,8 @@ import {
   ArrowUpRight, 
   Camera, 
   History,
-  Sparkles
+  Sparkles,
+  Square
 } from 'lucide-react';
 import ItemCard from '@/components/ui/ItemCard';
 import { useEngine } from '@/lib/engine-context';
@@ -305,6 +306,14 @@ export default function Home() {
                           <p className="text-[10px] text-blue-400/50 mt-1 uppercase tracking-widest font-black">
                             {job.status}
                           </p>
+                          
+                          <button 
+                            onClick={() => JobOrchestrator.cancelJob(job.id)}
+                            className="mt-6 flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/5 px-6 py-2 text-[8px] font-black uppercase tracking-widest text-red-400 transition-all hover:bg-red-500/10 hover:border-red-500/50 active:scale-95"
+                          >
+                            <Square className="h-3 w-3 fill-current" />
+                            Stop Task
+                          </button>
                         </>
                       )}
                     </div>

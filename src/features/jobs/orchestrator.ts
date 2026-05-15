@@ -12,10 +12,17 @@ import { Job } from '@/shared/api/schema';
  * Helper to wrap fetch with a timeout
  */
 async function fetchWithTimeout(resource: string, options: any = {}) {
-  const { timeout = 120000 } = options;
+  const { timeout = 120000, signal: externalSignal } = options;
   
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
+  
+  if (externalSignal) {
+    externalSignal.addEventListener('abort', () => {
+      clearTimeout(id);
+      controller.abort();
+    }, { once: true });
+  }
   
   try {
     const response = await fetch(resource, {
@@ -27,6 +34,7 @@ async function fetchWithTimeout(resource: string, options: any = {}) {
   } catch (error: any) {
     clearTimeout(id);
     if (error.name === 'AbortError') {
+      if (externalSignal?.aborted) throw new Error('Operation cancelled by user.');
       throw new Error('Intelligence Engine timed out. Please try a faster model or check your connection.');
     }
     throw error;
@@ -34,6 +42,46 @@ async function fetchWithTimeout(resource: string, options: any = {}) {
 }
 
 export class JobOrchestrator {
+  static controllers = new Map<string, AbortController>();
+  
+  static async cancelJob(jobId: string): Promise<void> {
+    const controller = this.controllers.get(jobId);
+    if (controller) {
+      controller.abort();
+      this.controllers.delete(jobId);
+    }
+
+    const store = useQueueStore.getState();
+    const job = store.pendingJobs.find(j => j.id === jobId);
+    
+    if (job) {
+      // 1. Cleanup Storage
+      if (job.payload?.imageUrls) {
+        const { deleteFromStorage } = await import('@/shared/lib/upload');
+        // Extract paths from public URLs
+        const paths = job.payload.imageUrls.map((url: string) => {
+          const parts = url.split('/raw_images/');
+          return parts.length > 1 ? parts[1] : null;
+        }).filter(Boolean);
+        
+        if (paths.length > 0) {
+          await deleteFromStorage(paths);
+        }
+      }
+
+      // 2. Cleanup Database Items
+      if (job.payload?.createdItemIds?.length > 0) {
+        await supabase.from('inventory').delete().in('id', job.payload.createdItemIds);
+      }
+
+      // 3. Delete Job
+      await supabase.from('jobs').delete().eq('id', jobId);
+      
+      // 4. Update Store
+      store.cancelJob(jobId);
+    }
+  }
+
   
   static async startInventoryScan(files: File[], branchId: string, modelType: string): Promise<string> {
     const store = useQueueStore.getState();
@@ -56,14 +104,18 @@ export class JobOrchestrator {
       // Sync to Supabase to track across devices
       await supabase.from('jobs').insert(newJob);
 
+      const controller = new AbortController();
+      this.controllers.set(newJob.id, controller);
+
       // 2. Upload directly to Supabase Storage (bypassing Vercel limits)
       store.updateJob(newJob.id, { status: 'processing' });
       await supabase.from('jobs').update({ status: 'processing' }).eq('id', newJob.id);
 
       const { uploadToStorage } = await import('@/shared/lib/upload');
       
-      const uploadWithRetry = async (file: File, bucket: string, retries = 3): Promise<string> => {
+      const uploadWithRetry = async (file: File, bucket: string, retries = 3): Promise<{path: string, publicUrl: string}> => {
         try {
+          if (controller.signal.aborted) throw new Error('Cancelled');
           return await uploadToStorage(file, bucket);
         } catch (err) {
           if (retries > 0) {
@@ -75,7 +127,7 @@ export class JobOrchestrator {
         }
       };
 
-      const storageUrls = await Promise.all(
+      const storageResults = await Promise.all(
         files.map(async (file) => {
           const isImage = file.type.startsWith('image/') || 
                           ['.heic', '.heif', '.dng'].some(ext => file.name.toLowerCase().endsWith(ext));
@@ -88,6 +140,9 @@ export class JobOrchestrator {
         })
       );
 
+      const storageUrls = storageResults.map(r => r.publicUrl);
+      const storagePaths = storageResults.map(r => r.path);
+
       // Save URLs to payload so we can retry without re-uploading
       store.updateJob(newJob.id, { payload: { ...newJob.payload, imageUrls: storageUrls } });
 
@@ -97,6 +152,7 @@ export class JobOrchestrator {
       const clusterRes = await fetch('/api/inventory/cluster', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({ imageUrls: storageUrls })
       });
 
@@ -130,6 +186,7 @@ export class JobOrchestrator {
         const scanRes = await fetchWithTimeout('/api/inventory/scan-v2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
           body: JSON.stringify({
             jobId: newJob.id,
             imageUrls: clusterUrls,
@@ -139,7 +196,18 @@ export class JobOrchestrator {
         });
 
         if (scanRes.ok) {
-          results.push(await scanRes.json());
+          const scanData = await scanRes.json();
+          results.push(scanData);
+          // Track created item ID for potential cleanup
+          if (scanData.itemId) {
+            const currentItemIds = useQueueStore.getState().pendingJobs.find(j => j.id === newJob.id)?.payload?.createdItemIds || [];
+            store.updateJob(newJob.id, { 
+              payload: { 
+                ...useQueueStore.getState().pendingJobs.find(j => j.id === newJob.id)?.payload, 
+                createdItemIds: [...currentItemIds, scanData.itemId] 
+              } 
+            });
+          }
         }
       }
 
@@ -150,6 +218,7 @@ export class JobOrchestrator {
         result: { itemsDetected: results.length } 
       }).eq('id', newJob.id);
 
+      this.controllers.delete(newJob.id);
       return newJob.id;
 
     } catch (error: any) {
@@ -259,9 +328,13 @@ export class JobOrchestrator {
       store.updateJob(newJob.id, { status: 'processing' });
       await supabase.from('jobs').update({ status: 'processing' }).eq('id', newJob.id);
 
+      const controller = new AbortController();
+      this.controllers.set(newJob.id, controller);
+
       const response = await fetchWithTimeout('/api/inventory/extrapolate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           jobId: newJob.id,
           description,
@@ -282,6 +355,7 @@ export class JobOrchestrator {
         result 
       }).eq('id', newJob.id);
 
+      this.controllers.delete(newJob.id);
       return newJob.id;
 
     } catch (error: any) {
