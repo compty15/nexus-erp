@@ -35,7 +35,7 @@ async function fetchWithTimeout(resource: string, options: any = {}) {
 
 export class JobOrchestrator {
   
-  static async startInventoryScan(files: File[], branchId: string, model: string): Promise<string> {
+  static async startInventoryScan(files: File[], branchId: string, modelType: string): Promise<string> {
     const store = useQueueStore.getState();
     
     // 1. Create a pending job in the local store & database
@@ -43,7 +43,7 @@ export class JobOrchestrator {
       id: crypto.randomUUID(),
       status: 'pending',
       type: 'inventory_scan',
-      payload: { fileCount: files.length, model },
+      payload: { fileCount: files.length, model: modelType },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -121,7 +121,7 @@ export class JobOrchestrator {
             jobId: newJob.id,
             imageUrls: clusterUrls,
             branchId,
-            model
+            modelType
           })
         });
 
@@ -150,21 +150,21 @@ export class JobOrchestrator {
   /**
    * Retries an existing job with a potentially different model.
    */
-  static async retryInventoryScan(jobId: string, model: string, branchId: string): Promise<void> {
+  static async retryInventoryScan(jobId: string, modelType: string, branchId: string): Promise<void> {
     const store = useQueueStore.getState();
     const job = store.pendingJobs.find(j => j.id === jobId);
     if (!job) throw new Error('Job not found');
 
     if (job.type === 'text_extrapolation') {
-      return this.retryTextExtrapolation(jobId, model, branchId);
+      return this.retryTextExtrapolation(jobId, modelType, branchId);
     }
 
     if (!job.payload?.imageUrls) {
       throw new Error('Cannot retry: Missing image references.');
     }
 
-    store.updateJob(jobId, { status: 'processing', error: null, payload: { ...job.payload, model } });
-    await supabase.from('jobs').update({ status: 'processing', error: null, payload: { ...job.payload, model } }).eq('id', jobId);
+    store.updateJob(jobId, { status: 'processing', error: null, payload: { ...job.payload, model: modelType } });
+    await supabase.from('jobs').update({ status: 'processing', error: null, payload: { ...job.payload, model: modelType } }).eq('id', jobId);
 
     try {
       const response = await fetchWithTimeout('/api/inventory/scan-v2', {
@@ -174,7 +174,7 @@ export class JobOrchestrator {
           jobId,
           imageUrls: job.payload.imageUrls,
           branchId,
-          model
+          modelType
         })
       });
 
@@ -191,13 +191,13 @@ export class JobOrchestrator {
     }
   }
 
-  static async retryTextExtrapolation(jobId: string, model: string, branchId: string): Promise<void> {
+  static async retryTextExtrapolation(jobId: string, modelType: string, branchId: string): Promise<void> {
     const store = useQueueStore.getState();
     const job = store.pendingJobs.find(j => j.id === jobId);
     if (!job || !job.payload?.description) throw new Error('Missing job description.');
 
-    store.updateJob(jobId, { status: 'processing', error: null, payload: { ...job.payload, model } });
-    await supabase.from('jobs').update({ status: 'processing', error: null, payload: { ...job.payload, model } }).eq('id', jobId);
+    store.updateJob(jobId, { status: 'processing', error: null, payload: { ...job.payload, model: modelType } });
+    await supabase.from('jobs').update({ status: 'processing', error: null, payload: { ...job.payload, model: modelType } }).eq('id', jobId);
 
     try {
       const response = await fetchWithTimeout('/api/inventory/extrapolate', {
@@ -207,7 +207,7 @@ export class JobOrchestrator {
           jobId,
           description: job.payload.description,
           branchId,
-          model
+          modelType
         })
       });
 
@@ -224,14 +224,14 @@ export class JobOrchestrator {
     }
   }
 
-  static async startTextExtrapolation(description: string, branchId: string, model: string): Promise<string> {
+  static async startTextExtrapolation(description: string, branchId: string, modelType: string): Promise<string> {
     const store = useQueueStore.getState();
     
     const newJob: Job = {
       id: crypto.randomUUID(),
       status: 'pending',
       type: 'text_extrapolation',
-      payload: { description, model },
+      payload: { description, model: modelType },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -251,7 +251,7 @@ export class JobOrchestrator {
           jobId: newJob.id,
           description,
           branchId,
-          model
+          modelType
         })
       });
 

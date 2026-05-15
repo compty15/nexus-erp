@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await req.json();
-    const { jobId, imageUrls, branchId, model } = body;
+    const { jobId, imageUrls, branchId, modelType = 'flash' } = body;
 
     if (!imageUrls || imageUrls.length === 0) {
       return NextResponse.json({ error: 'No images provided' }, { status: 400 });
@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
     );
 
     // 2. AI ANALYSIS
-    const aiResult = await flashScan(mediaParts, (model as ModelType) || 'flash');
-    const scanCost = calculateBurnRate((model as ModelType) || 'flash', aiResult.usage);
+    const aiResult = await flashScan(mediaParts, (modelType as ModelType));
+    const scanCost = calculateBurnRate((modelType as ModelType), aiResult.usage);
 
     // 2.5 GET NEXT ITEM NUMBER
     const { count } = await supabase
@@ -60,14 +60,14 @@ export async function POST(req: NextRequest) {
         status: aiResult.data.needs_pro ? 'needs_review' : 'identified',
         metadata: {
           item_code: itemCode,
-          last_model: model,
+          last_model: modelType,
           usage: aiResult.usage,
           confidence: aiResult.data.confidence,
           needs_pro: aiResult.data.needs_pro,
           drafts: aiResult.data.drafts || {},
           scan_history: [{
             timestamp: new Date().toISOString(),
-            model: model || 'gemini-2.5-flash',
+            model: modelType,
             data: aiResult.data
           }]
         }

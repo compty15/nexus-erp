@@ -8,15 +8,15 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await req.json();
-    const { jobId, description, branchId, model } = body;
+    const { jobId, description, branchId, modelType = 'flash' } = body;
 
     if (!description) {
       return NextResponse.json({ error: 'No description provided' }, { status: 400 });
     }
 
     // 1. AI EXTRAPOLATION
-    const aiResult = await extrapolateItemFromText(description, (model as ModelType) || 'flash');
-    const scanCost = calculateBurnRate((model as ModelType) || 'flash', aiResult.usage);
+    const aiResult = await extrapolateItemFromText(description, (modelType as ModelType));
+    const scanCost = calculateBurnRate((modelType as ModelType), aiResult.usage);
 
     // 1.5 GET NEXT ITEM NUMBER
     const { count } = await supabase
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         status: aiResult.data.needs_pro ? 'needs_review' : 'identified',
         metadata: {
           item_code: itemCode,
-          last_model: model,
+          last_model: modelType,
           input_description: description,
           usage: aiResult.usage,
           confidence: aiResult.data.confidence,
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
           drafts: aiResult.data.drafts || {},
           scan_history: [{
             timestamp: new Date().toISOString(),
-            model: model || 'gemini-2.5-flash',
+            model: modelType,
             data: aiResult.data
           }]
         }
