@@ -104,14 +104,24 @@ export async function groupPhotos(images: { data: string; mimeType: string }[]) 
     safetySettings: SAFETY_SETTINGS
   });
   
-  const prompt = `Analyze these images and group them by item. 
-  Images are provided in sequence. Identify which images belong to the same physical item.
+  const prompt = `CRITICAL MISSION: You are an expert inventory auditor. Your task is to CLUSTER these images by individual physical item.
+  
+  EACH PHYSICAL ITEM MUST HAVE ITS OWN CLUSTER. 
+  
+  STRICT AUDIT RULES:
+  1. DO NOT group different items together. If an image shows a new object, start a NEW cluster immediately.
+  2. LOOK FOR TRANSITIONS: A change in background, a change in tool type (e.g., from a wrench to a micrometer), or a change in packaging indicates a NEW ITEM.
+  3. ISOLATION OVER GROUPING: It is a FAILURE to combine distinct items. It is acceptable to have many small clusters.
+  4. IDENTIFY DUPLICATES: If multiple images show the EXACT same physical unit from different angles, group them.
+  5. LABEL RECOGNITION: Different serial numbers or model labels mean DIFFERENT items.
+  6. BACKGROUND CUES: If the surface or setting changes, it is almost certainly a different item.
+  
   Return a JSON object with a "clusters" key containing an array of groups.
   Each group should have:
-  - "item_name": A short descriptive name for the item.
+  - "item_name": A specific descriptive name (e.g., "Starrett Micrometer #1", "Caliper in Wood Box").
   - "indices": An array of numbers corresponding to the 0-indexed position of the images.
   
-  Example: { "clusters": [ { "item_name": "Digital Micrometer", "indices": [0, 2] }, { "item_name": "Lathe Tool", "indices": [1] } ] }`;
+  Example: { "clusters": [ { "item_name": "Micrometer A", "indices": [0, 2] }, { "item_name": "Wrench B", "indices": [1] } ] }`;
 
   const parts = [
     prompt,
@@ -134,11 +144,13 @@ export async function flashScan(images: { data: string; mimeType: string }[], mo
     safetySettings: SAFETY_SETTINGS
   });
   
-  const prompt = `Perform a detailed analysis of this item based on the provided media (images, videos, or PDFs). 
-  Extract as much deep metadata as possible. For videos, analyze the motion and condition. For PDFs, extract technical specifications or certifications.
-  Generate 4 PLATFORM DRAFTS for listing: ebay, fb, etsy, and shopify.
-  Include a "confidence" score (0.0 to 1.0). If confidence is below 0.8 or critical info is missing, set "needs_pro" to true.
-  Estimate the physical weight in lbs and size in inches if visible or known.
+  const prompt = `Perform a detailed analysis of this item based on the provided media.
+  
+  CRITICAL: If the provided images appear to contain MULTIPLE DISTINCT ITEMS (e.g., a hammer AND a wrench), set "multiple_items_detected" to true.
+  
+  Extract deep metadata. Generate 4 PLATFORM DRAFTS: ebay, fb, etsy, and shopify.
+  Include a "confidence" score (0.0 to 1.0). If confidence is below 0.8, set "needs_pro" to true.
+  Estimate weight in lbs and size in inches.
   
   Format as JSON: { 
     "name": "", 
@@ -146,6 +158,7 @@ export async function flashScan(images: { data: string; mimeType: string }[], mo
     "brand": "", 
     "model_number": "",
     "quantity": 1,
+    "multiple_items_detected": false,
     "short_description": "",
     "dimensions": "",
     "estimated_weight_lbs": 0.0,

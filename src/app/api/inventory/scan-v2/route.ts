@@ -57,20 +57,18 @@ export async function POST(req: NextRequest) {
           last_scan_cost: scanCost,
           total_scan_cost: scanCost,
         },
-        status: aiResult.data.needs_pro ? 'needs_review' : 'identified',
+        status: (aiResult.data.needs_pro || aiResult.data.multiple_items_detected) ? 'needs_review' : 'identified',
         metadata: {
+          ...aiResult.data,
           item_code: itemCode,
           last_model: modelType,
-          usage: aiResult.usage,
-          confidence: aiResult.data.confidence,
-          needs_pro: aiResult.data.needs_pro,
-          drafts: aiResult.data.drafts || {},
           scan_history: [{
             timestamp: new Date().toISOString(),
             model: modelType,
             data: aiResult.data
           }]
-        }
+        },
+        updated_at: new Date().toISOString()
       })
       .select()
       .single();

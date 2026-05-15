@@ -101,6 +101,17 @@ export class JobOrchestrator {
       if (!clusterRes.ok) throw new Error('Clustering stage failed.');
       const { clusters } = await clusterRes.json();
 
+      // Sanity check: If we have many images but only 1 cluster, log it as suspicious
+      if (storageUrls.length > 10 && clusters.length === 1) {
+        console.warn(`Suspicious clustering: ${storageUrls.length} images grouped into 1 cluster.`);
+        await supabase.from('activity_logs').insert({
+          event_type: 'cluster_warning',
+          severity: 'warning',
+          message: `Suspiciously high concentration: ${storageUrls.length} images grouped into 1 item.`,
+          metadata: { jobId: newJob.id, imageCount: storageUrls.length }
+        });
+      }
+
       // 4. Sequential Identification (Stage C)
       const results = [];
       for (const cluster of clusters) {
