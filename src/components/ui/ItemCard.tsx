@@ -101,13 +101,15 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
         duration: 2000
       });
 
+      const lastModel = (item as any)?.metadata?.last_model || engine;
+
       const res = await fetch('/api/inventory/adjust', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           itemId: item.id, 
           updates: editValues,
-          modelType: engine
+          modelType: lastModel
         })
       });
       
@@ -211,9 +213,14 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
                 className="w-full bg-black/40 border border-blue-500/30 rounded-lg px-2 py-1 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-blue-500"
                 placeholder="Item Name"
+                autoFocus
               />
             ) : (
-              <h3 className="text-xs font-black uppercase tracking-widest text-white truncate group-hover:text-glow-uv">
+              <h3 
+                onClick={startEditing}
+                className="text-xs font-black uppercase tracking-widest text-white truncate hover:text-blue-400 cursor-pointer transition-colors"
+                title="Click to edit"
+              >
                 {item?.name || (isScanning ? 'Identifying...' : 'New Entry')}
               </h3>
             )}
@@ -224,10 +231,11 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
               <div className="flex gap-1">
                 <button 
                   onClick={handleAdjust}
-                  className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-all"
-                  title="Flash Rescan & Save"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-all"
+                  title="Save & Refine with Last AI"
                 >
-                  <Check className="h-4 w-4" />
+                  <Check className="h-3.5 w-3.5" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Save</span>
                 </button>
                 <button 
                   onClick={() => setIsEditing(false)}
@@ -237,12 +245,13 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 </button>
               </div>
             ) : item?.id ? (
-              <>
+              <div className="flex gap-1">
                 <button 
                   onClick={startEditing}
-                  className="p-1.5 rounded-lg bg-white/5 text-titanium-500 hover:text-white hover:bg-white/10 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-titanium-400 hover:text-white hover:bg-white/10 transition-all border border-white/5"
                 >
                   <Edit3 className="h-3.5 w-3.5" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
                 </button>
                 <button 
                   onClick={handleDelete}
@@ -250,7 +259,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 >
                   <Trash className="h-3.5 w-3.5" />
                 </button>
-              </>
+              </div>
             ) : null}
           </div>
         </div>
@@ -275,8 +284,11 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
 
           {/* Quick Specs */}
           <div className="flex-1 grid grid-cols-2 gap-2 overflow-hidden">
-            <div className="flex flex-col justify-center rounded-xl bg-white/5 p-2 border border-white/5">
-              <span className="text-[7px] font-black uppercase tracking-widest text-titanium-500">Brand</span>
+            <div 
+              onClick={!isEditing ? startEditing : undefined}
+              className={`flex flex-col justify-center rounded-xl bg-white/5 p-2 border border-white/5 transition-all ${!isEditing ? 'hover:bg-white/10 cursor-pointer group/field' : ''}`}
+            >
+              <span className="text-[7px] font-black uppercase tracking-widest text-titanium-500 group-hover/field:text-blue-400">Brand</span>
               {isEditing ? (
                 <input 
                   value={editValues.brand}
@@ -287,8 +299,11 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 <span className="text-[10px] font-bold text-white truncate">{item?.brand || '-'}</span>
               )}
             </div>
-            <div className="flex flex-col justify-center rounded-xl bg-white/5 p-2 border border-white/5">
-              <span className="text-[7px] font-black uppercase tracking-widest text-titanium-500">Valuation</span>
+            <div 
+              onClick={!isEditing ? startEditing : undefined}
+              className={`flex flex-col justify-center rounded-xl bg-white/5 p-2 border border-white/5 transition-all ${!isEditing ? 'hover:bg-white/10 cursor-pointer group/field' : ''}`}
+            >
+              <span className="text-[7px] font-black uppercase tracking-widest text-titanium-500 group-hover/field:text-blue-400">Valuation</span>
               {isEditing ? (
                 <input 
                   value={editValues.price}
@@ -299,8 +314,11 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 <span className="text-[10px] font-bold text-emerald-400 truncate">{item?.price || '-'}</span>
               )}
             </div>
-            <div className="flex flex-col justify-center rounded-xl bg-white/5 p-2 border border-white/5">
-              <span className="text-[7px] font-black uppercase tracking-widest text-titanium-500">Category</span>
+            <div 
+              onClick={!isEditing ? startEditing : undefined}
+              className={`flex flex-col justify-center rounded-xl bg-white/5 p-2 border border-white/5 transition-all ${!isEditing ? 'hover:bg-white/10 cursor-pointer group/field' : ''}`}
+            >
+              <span className="text-[7px] font-black uppercase tracking-widest text-titanium-500 group-hover/field:text-blue-400">Category</span>
               {isEditing ? (
                 <input 
                   value={editValues.category}
@@ -334,9 +352,12 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
               placeholder="Detailed item description..."
             />
           ) : (
-            <div className="rounded-xl bg-black/40 p-3 border border-white/5">
-              <p className="text-[10px] text-titanium-300 leading-relaxed max-h-[60px] overflow-y-auto no-scrollbar italic">
-                {item?.ebay_description || 'No description generated.'}
+            <div 
+              onClick={startEditing}
+              className="rounded-xl bg-black/40 p-3 border border-white/5 hover:border-blue-500/30 cursor-pointer transition-all group/desc"
+            >
+              <p className="text-[10px] text-titanium-300 leading-relaxed max-h-[60px] overflow-y-auto no-scrollbar italic group-hover/desc:text-white transition-colors">
+                {item?.ebay_description || 'No description generated. Click to add one.'}
               </p>
             </div>
           )}
