@@ -94,6 +94,38 @@ export default function Home() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
+      {/* Dashboard Shortcuts */}
+      <section className="mb-12">
+        <h2 className="mb-6 text-[10px] font-black uppercase tracking-[0.4em] text-titanium-600 px-2">Navigation Nodes</h2>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[
+            { label: 'Sales Dashboard', href: '/inventory/sold', icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-400/5', border: 'border-emerald-400/20' },
+            { label: 'Financial Ledger', href: '/ledger', icon: Activity, color: 'text-blue-400', bg: 'bg-blue-400/5', border: 'border-blue-400/20' },
+            { label: 'Fulfillment', href: '/shipping', icon: Package, icon2: ArrowUpRight, color: 'text-purple-400', bg: 'bg-purple-400/5', border: 'border-purple-400/20' },
+            { label: 'System Configuration', href: '/settings', icon: Sparkles, color: 'text-amber-400', bg: 'bg-amber-400/5', border: 'border-amber-400/20' },
+          ].map((node) => (
+            <motion.a
+              key={node.href}
+              href={node.href}
+              whileHover={{ y: -5, backgroundColor: 'rgba(255,255,255,0.03)' }}
+              whileTap={{ scale: 0.98 }}
+              className={`flex flex-col gap-4 rounded-3xl border ${node.border} ${node.bg} p-6 transition-all duration-300 backdrop-blur-sm group`}
+            >
+              <div className="flex items-center justify-between">
+                <div className={`rounded-xl bg-black/40 p-2 border border-white/5`}>
+                  <node.icon className={`h-5 w-5 ${node.color}`} />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-titanium-600 group-hover:text-white transition-colors" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white">{node.label}</p>
+                <p className="mt-1 text-[8px] font-bold text-titanium-500 uppercase tracking-tighter">Access Module</p>
+              </div>
+            </motion.a>
+          ))}
+        </div>
+      </section>
+
       {/* Scanner Section */}
       <section className="mb-12 relative overflow-hidden rounded-[40px] titanium-panel p-8 md:p-12 shadow-2xl">
         {/* Animated Flow Overlay for the panel */}
@@ -155,38 +187,6 @@ export default function Home() {
             ref={fileInputRef}
             onChange={handleFileSelect}
           />
-        </div>
-      </section>
-
-      {/* Dashboard Shortcuts */}
-      <section className="mb-12">
-        <h2 className="mb-6 text-[10px] font-black uppercase tracking-[0.4em] text-titanium-600 px-2">Navigation Nodes</h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {[
-            { label: 'Sales Dashboard', href: '/inventory/sold', icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-400/5', border: 'border-emerald-400/20' },
-            { label: 'Financial Ledger', href: '/ledger', icon: Activity, color: 'text-blue-400', bg: 'bg-blue-400/5', border: 'border-blue-400/20' },
-            { label: 'Fulfillment', href: '/shipping', icon: Package, icon2: ArrowUpRight, color: 'text-purple-400', bg: 'bg-purple-400/5', border: 'border-purple-400/20' },
-            { label: 'System Configuration', href: '/settings', icon: Sparkles, color: 'text-amber-400', bg: 'bg-amber-400/5', border: 'border-amber-400/20' },
-          ].map((node) => (
-            <motion.a
-              key={node.href}
-              href={node.href}
-              whileHover={{ y: -5, backgroundColor: 'rgba(255,255,255,0.03)' }}
-              whileTap={{ scale: 0.98 }}
-              className={`flex flex-col gap-4 rounded-3xl border ${node.border} ${node.bg} p-6 transition-all duration-300 backdrop-blur-sm group`}
-            >
-              <div className="flex items-center justify-between">
-                <div className={`rounded-xl bg-black/40 p-2 border border-white/5`}>
-                  <node.icon className={`h-5 w-5 ${node.color}`} />
-                </div>
-                <ArrowUpRight className="h-4 w-4 text-titanium-600 group-hover:text-white transition-colors" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white">{node.label}</p>
-                <p className="mt-1 text-[8px] font-bold text-titanium-500 uppercase tracking-tighter">Access Module</p>
-              </div>
-            </motion.a>
-          ))}
         </div>
       </section>
 
