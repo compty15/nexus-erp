@@ -59,6 +59,7 @@ export default function Home() {
   // Local UI State for Modals
   const [activeItem, setActiveItem] = React.useState<any>(null);
   const [modalMode, setModalMode] = React.useState<'none' | 'sold' | 'list' | 'details' | 'quick-add'>('none');
+  const [expandedErrorJobId, setExpandedErrorJobId] = React.useState<string | null>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     // ... (rest of handleFileSelect remains same)
@@ -251,9 +252,19 @@ export default function Home() {
                             <Activity className="h-8 w-8 text-red-500" />
                           </div>
                           <p className="text-sm font-bold text-red-400 text-center">Operation Failed</p>
-                          <p className="text-[10px] text-red-300/60 mt-1 text-center line-clamp-3 px-2 leading-relaxed">
-                            {job.error || 'The intelligence stream was interrupted.'}
-                          </p>
+                          <div className="relative w-full">
+                            <p className={`text-[10px] text-red-300/60 mt-1 text-center px-2 leading-relaxed select-text cursor-text ${expandedErrorJobId === job.id ? '' : 'line-clamp-3'}`}>
+                              {job.error || 'The intelligence stream was interrupted.'}
+                            </p>
+                            {job.error && job.error.length > 50 && (
+                              <button 
+                                onClick={() => setExpandedErrorJobId(expandedErrorJobId === job.id ? null : job.id)}
+                                className="mt-2 w-full text-[8px] font-black uppercase tracking-[0.2em] text-red-400/40 hover:text-red-400 transition-all border-t border-red-500/10 pt-2"
+                              >
+                                {expandedErrorJobId === job.id ? 'Hide Details' : 'View Full Error'}
+                              </button>
+                            )}
+                          </div>
                           
                           <div className="mt-6 w-full border-t border-white/5 pt-4">
                             <p className="text-[8px] font-black uppercase tracking-[0.2em] text-titanium-500 mb-3 text-center italic">Select Recovery Engine:</p>

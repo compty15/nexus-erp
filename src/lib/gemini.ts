@@ -23,6 +23,13 @@ const MODEL_MAP: Record<ModelType, string> = {
   "pro-3.1": "gemini-3.1-pro-preview",
 };
 
+const SAFETY_SETTINGS = [
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+];
+
 /**
  * Robust JSON parsing that handles Gemini markdown code blocks
  */
@@ -93,7 +100,8 @@ export function calculateBurnRate(model: ModelType, usage: any) {
 export async function groupPhotos(images: { data: string; mimeType: string }[]) {
   const model = genAI.getGenerativeModel({ 
     model: MODEL_MAP.flash,
-    generationConfig: { responseMimeType: "application/json" }
+    generationConfig: { responseMimeType: "application/json" },
+    safetySettings: SAFETY_SETTINGS
   });
   
   const prompt = `Analyze these images and group them by item. 
@@ -122,7 +130,8 @@ export async function groupPhotos(images: { data: string; mimeType: string }[]) 
 export async function flashScan(images: { data: string; mimeType: string }[], modelType: ModelType = "flash") {
   const model = genAI.getGenerativeModel({ 
     model: MODEL_MAP[modelType],
-    generationConfig: { responseMimeType: "application/json" }
+    generationConfig: { responseMimeType: "application/json" },
+    safetySettings: SAFETY_SETTINGS
   });
   
   const prompt = `Perform a detailed analysis of this item based on the provided media (images, videos, or PDFs). 
@@ -171,7 +180,8 @@ export async function flashScan(images: { data: string; mimeType: string }[], mo
 export async function deepDive(images: { data: string; mimeType: string }[], modelType: ModelType = "pro-2.5") {
   const model = genAI.getGenerativeModel({ 
     model: MODEL_MAP[modelType],
-    generationConfig: { responseMimeType: "application/json" }
+    generationConfig: { responseMimeType: "application/json" },
+    safetySettings: SAFETY_SETTINGS
   });
   
   const prompt = `Perform high-precision analysis on this media:
@@ -222,7 +232,8 @@ export async function deepDive(images: { data: string; mimeType: string }[], mod
 export async function extrapolateItemFromText(description: string, modelType: ModelType = "flash") {
   const model = genAI.getGenerativeModel({ 
     model: MODEL_MAP[modelType],
-    generationConfig: { responseMimeType: "application/json" }
+    generationConfig: { responseMimeType: "application/json" },
+    safetySettings: SAFETY_SETTINGS
   });
   
   const prompt = `Perform a detailed analysis of this item based on the provided text description.
@@ -271,7 +282,8 @@ export async function extrapolateItemFromText(description: string, modelType: Mo
 export async function adjustItemMetadata(currentItem: any, updates: any, modelType: ModelType = "flash") {
   const model = genAI.getGenerativeModel({ 
     model: MODEL_MAP[modelType],
-    generationConfig: { responseMimeType: "application/json" }
+    generationConfig: { responseMimeType: "application/json" },
+    safetySettings: SAFETY_SETTINGS
   });
   
   const prompt = `Refine the listing intelligence for this item based on manual user updates.
