@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, History, Clock, FileText, Cpu, Trash2, RotateCcw } from 'lucide-react';
-import { useDeleteItem } from '@/features/inventory/useInventory';
+import { X, History, Clock, FileText, Cpu, Trash2, RotateCcw, Image as ImageIcon, Maximize2, CheckSquare, Square, Scissors, Merge, Trash } from 'lucide-react';
+import { useDeleteItem, useInventory } from '@/features/inventory/useInventory';
 import { useNotifications } from '@/lib/notifications';
+import MergeTargetModal from './MergeTargetModal';
 
 interface ItemDetailsModalProps {
   item: any;
@@ -10,8 +11,12 @@ interface ItemDetailsModalProps {
 }
 
 export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProps) {
-  const [activeTab, setActiveTab] = useState<'info' | 'history'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'history' | 'media'>('info');
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState<number | null>(null);
+  const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
+  const [zoomPhoto, setZoomPhoto] = useState<string | null>(null);
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+  const [isProcessingMedia, setIsProcessingMedia] = useState(false);
   const deleteMutation = useDeleteItem();
   const { addNotification } = useNotifications();
   const history = item.metadata?.scan_history || [];
@@ -47,6 +52,55 @@ export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProp
       addNotification({ type: 'success', title: 'Restored', message: 'Item updated with data from past scan.' });
       onClose(); // Close to refresh
     }
+  };
+
+  const { refetch } = useInventory();
+
+  const handleMediaAction = async (action: 'DELETE' | 'MERGE' | 'SPLIT', targetItemId?: string) => {
+    if (selectedPhotos.length === 0) return;
+    if (action === 'DELETE' && !confirm(`Delete ${selectedPhotos.length} photos?`)) return;
+    if (action === 'SPLIT' && !confirm(`Create a new item card from these ${selectedPhotos.length} photos?`)) return;
+
+    setIsProcessingMedia(true);
+    try {
+      const res = await fetch('/api/inventory/media/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          sourceItemId: item.id,
+          selectedPhotos,
+          targetItemId,
+          branchId: item.branch_id
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to process media');
+
+      addNotification({
+        type: 'success',
+        title: 'Media Updated',
+        message: data.message
+      });
+
+      setSelectedPhotos([]);
+      setIsMergeModalOpen(false);
+      refetch();
+      if (action === 'SPLIT' || (action === 'DELETE' && item.image_refs.length === selectedPhotos.length)) {
+        onClose(); // Close if item is significantly changed or emptied
+      }
+    } catch (err: any) {
+      addNotification({ type: 'error', title: 'Action Failed', message: err.message });
+    } finally {
+      setIsProcessingMedia(false);
+    }
+  };
+
+  const togglePhotoSelection = (url: string) => {
+    setSelectedPhotos(prev => 
+      prev.includes(url) ? prev.filter(p => p !== url) : [...prev, url]
+    );
   };
 
   const isDeleted = item.status === 'deleted';
@@ -95,6 +149,13 @@ export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProp
           >
             <History className="h-4 w-4" />
             Scan History ({history.length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('media')}
+            className={`px-6 py-5 text-xs uppercase tracking-widest font-black border-b-2 transition-all flex items-center gap-2 ${activeTab === 'media' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-gray-500 hover:text-white'}`}
+          >
+            <ImageIcon className="h-4 w-4" />
+            Media Center ({item.image_refs?.length || 0})
           </button>
         </div>
 
@@ -267,6 +328,99 @@ export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProp
               </div>
             </div>
           )}
+
+          {activeTab === 'media' && (
+            <div className="space-y-6 h-full flex flex-col">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight">Image Vault</h3>
+                  <p className="text-xs text-gray-500 font-bold">Manage photos for this item cluster</p>
+                </div>
+                {selectedPhotos.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-2xl"
+                  >
+                    <span className="text-[10px] font-black text-blue-400 uppercase">{selectedPhotos.length} Selected</span>
+                    <div className="h-4 w-[1px] bg-blue-500/20 mx-2" />
+                    <button 
+                      onClick={() => handleMediaAction('SPLIT')}
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-titanium-300 hover:text-white transition-all flex items-center gap-2"
+                      title="Split into new item"
+                    >
+                      <Scissors className="h-4 w-4" />
+                      <span className="text-[9px] font-black uppercase">Split</span>
+                    </button>
+                    <button 
+                      onClick={() => setIsMergeModalOpen(true)}
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-titanium-300 hover:text-white transition-all flex items-center gap-2"
+                      title="Merge into another item"
+                    >
+                      <Merge className="h-4 w-4" />
+                      <span className="text-[9px] font-black uppercase">Merge</span>
+                    </button>
+                    <button 
+                      onClick={() => handleMediaAction('DELETE')}
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-red-400 hover:text-red-500 transition-all flex items-center gap-2"
+                      title="Delete photos"
+                    >
+                      <Trash className="h-4 w-4" />
+                      <span className="text-[9px] font-black uppercase">Delete</span>
+                    </button>
+                  </motion.div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-y-auto pr-2 custom-scrollbar flex-1 pb-20">
+                {item.image_refs?.map((url: string, idx: number) => {
+                  const isSelected = selectedPhotos.includes(url);
+                  return (
+                    <div 
+                      key={idx}
+                      className={`group relative aspect-square rounded-3xl overflow-hidden border-2 transition-all cursor-pointer ${isSelected ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]' : 'border-[#222] hover:border-[#444]'}`}
+                    >
+                      <img 
+                        src={url} 
+                        alt={`Photo ${idx + 1}`}
+                        className={`h-full w-full object-cover transition-transform duration-500 ${isSelected ? 'scale-110' : 'group-hover:scale-105'}`}
+                        onClick={() => togglePhotoSelection(url)}
+                      />
+                      
+                      {/* Controls Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setZoomPhoto(url);
+                        }}
+                        className="absolute top-3 right-3 p-2 rounded-xl bg-black/60 backdrop-blur-md text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-500 hover:border-blue-400"
+                      >
+                        <Maximize2 className="h-3.5 w-3.5" />
+                      </button>
+
+                      <div 
+                        className={`absolute top-3 left-3 p-1.5 rounded-lg border transition-all ${isSelected ? 'bg-blue-500 border-blue-400 text-white' : 'bg-black/40 border-white/10 text-white/40'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePhotoSelection(url);
+                        }}
+                      >
+                        {isSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                      </div>
+
+                      <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[10px] font-black text-white bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
+                          #{idx + 1}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer Actions */}
@@ -303,6 +457,57 @@ export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProp
           </button>
         </div>
       </motion.div>
+
+      {/* Photo Lightbox */}
+      <AnimatePresence>
+        {zoomPhoto && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setZoomPhoto(null)}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 cursor-zoom-out"
+          >
+            <motion.img 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              src={zoomPhoto} 
+              className="max-w-full max-h-full object-contain rounded-3xl shadow-2xl"
+              alt="Zoomed"
+            />
+            <button className="absolute top-8 right-8 p-4 rounded-full bg-white/5 hover:bg-white/10 text-white transition-all">
+              <X className="h-8 w-8" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Merge Destination Selector */}
+      <AnimatePresence>
+        {isMergeModalOpen && (
+          <MergeTargetModal 
+            excludeId={item.id}
+            onClose={() => setIsMergeModalOpen(false)}
+            onSelect={(target) => handleMediaAction('MERGE', target.id)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Processing Overlay */}
+      <AnimatePresence>
+        {isProcessingMedia && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[210] flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
+          >
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mb-4" />
+            <p className="text-xl font-black text-white uppercase tracking-widest animate-pulse">Reconfiguring Intelligence...</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
