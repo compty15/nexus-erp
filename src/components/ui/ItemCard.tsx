@@ -26,7 +26,7 @@ import {
 import { formatUnit } from '@/lib/logistics';
 import { useNotifications } from '@/lib/notifications';
 import { supabase } from '@/shared/lib/supabase';
-import { useDeleteItem, useRemoveImage, useInventory } from '@/features/inventory/useInventory';
+import { useDeleteItem, useRemoveImage, useInventory, useUpdateItem } from '@/features/inventory/useInventory';
 import { useEngine } from '@/lib/engine-context';
 import PhotoGalleryModal from '../inventory/PhotoGalleryModal';
 
@@ -66,6 +66,8 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
   const [isRescanning, setIsRescanning] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isAdjusting, setIsAdjusting] = useState(false);
+  const [qtyValue, setQtyValue] = useState(item?.quantity || 1);
+  const [isEditingQty, setIsEditingQty] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [editValues, setEditValues] = useState<any>({});
   
@@ -74,6 +76,29 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
   const deleteMutation = useDeleteItem();
   const removeImageMutation = useRemoveImage();
   const { refetch } = useInventory();
+  const updateMutation = useUpdateItem();
+
+  const handleQtyUpdate = async (newQty: number) => {
+    if (!item?.id) return;
+    
+    // Cap at 99, min 1
+    const finalQty = Math.min(99, Math.max(1, newQty));
+    
+    updateMutation.mutate({ 
+      id: item.id, 
+      data: { quantity: finalQty } 
+    }, {
+      onSuccess: () => {
+        setIsEditingQty(false);
+        addNotification({ type: 'success', title: 'Quantity Updated', message: `Set to ${finalQty}` });
+      },
+      onError: (err: any) => {
+        addNotification({ type: 'error', title: 'Update Failed', message: err.message });
+        setQtyValue(item.quantity || 1);
+        setIsEditingQty(false);
+      }
+    });
+  };
 
   // Initialize edit values when entering edit mode
   const startEditing = () => {
@@ -202,6 +227,44 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
               <span className="text-[10px] font-mono font-black text-titanium-400 bg-white/5 px-2 py-0.5 rounded border border-white/5">
                 {itemCode}
               </span>
+
+              {/* Quantity Bubble */}
+              <div className="relative">
+                {isEditingQty ? (
+                  <input 
+                    type="text"
+                    maxLength={2}
+                    value={qtyValue}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setQtyValue(val ? parseInt(val) : 0);
+                    }}
+                    onBlur={() => handleQtyUpdate(qtyValue)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleQtyUpdate(qtyValue);
+                      if (e.key === 'Escape') {
+                        setQtyValue(item?.quantity || 1);
+                        setIsEditingQty(false);
+                      }
+                    }}
+                    className="w-10 bg-white/10 border border-blue-500/50 rounded-full px-2 py-0.5 text-[10px] font-black text-white text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    autoFocus
+                  />
+                ) : (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setQtyValue(item?.quantity || 1);
+                      setIsEditingQty(true);
+                    }}
+                    className="flex items-center justify-center min-w-[2.5rem] h-6 rounded-full bg-titanium-500/10 border border-titanium-500/20 px-2 py-0.5 hover:bg-titanium-500/20 transition-all group/qty"
+                  >
+                    <span className="text-[9px] font-black text-titanium-400 group-hover/qty:text-white uppercase tracking-tighter">Qty:</span>
+                    <span className="ml-1 text-[10px] font-black text-white">{item?.quantity || 1}</span>
+                  </button>
+                )}
+              </div>
+
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">
                 <BrainCircuit className="h-2.5 w-2.5 text-blue-400" />
                 <span className="text-[8px] font-black uppercase text-blue-400 tracking-wider">

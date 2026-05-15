@@ -20,6 +20,25 @@ export function useInventory() {
   });
 }
 
+export function useUpdateItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InventoryItem> }) => {
+      const { error } = await supabase
+        .from('inventory')
+        .update(data)
+        .eq('id', id);
+      
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    },
+  });
+}
+
 export function useMarkAsSold() {
   const queryClient = useQueryClient();
 
