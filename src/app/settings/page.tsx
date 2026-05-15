@@ -196,7 +196,8 @@ export default function SettingsPage() {
             </div>
             <button
               onClick={() => {
-                const url = `${window.location.origin}/signup`;
+                const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+                const url = `${baseUrl}/signup`;
                 navigator.clipboard.writeText(url);
                 addNotification({
                   type: 'success',
