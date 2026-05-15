@@ -20,6 +20,7 @@ import {
   FileText,
   Edit3,
   Check,
+  Maximize2,
   X as CloseIcon
 } from 'lucide-react';
 import { formatUnit } from '@/lib/logistics';
@@ -27,6 +28,7 @@ import { useNotifications } from '@/lib/notifications';
 import { supabase } from '@/shared/lib/supabase';
 import { useDeleteItem, useRemoveImage, useInventory } from '@/features/inventory/useInventory';
 import { useEngine } from '@/lib/engine-context';
+import PhotoGalleryModal from '../inventory/PhotoGalleryModal';
 
 
 interface ItemCardProps {
@@ -64,6 +66,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
   const [isRescanning, setIsRescanning] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isAdjusting, setIsAdjusting] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
   const [editValues, setEditValues] = useState<any>({});
   
   const { addNotification } = useNotifications();
@@ -267,14 +270,20 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
         {/* Compact Media + Details Grid */}
         <div className="flex gap-3 h-32">
           {/* Image Thumbnail */}
-          <div className="w-24 h-full shrink-0 relative rounded-xl overflow-hidden bg-black/40 border border-white/5">
+          <div 
+            onClick={() => setShowGallery(true)}
+            className="w-24 h-full shrink-0 relative rounded-xl overflow-hidden bg-black/40 border border-white/5 cursor-zoom-in group/img"
+          >
             {item?.image_refs?.[0] ? (
-              <img src={item.image_refs[0]} className="w-full h-full object-cover opacity-80" />
+              <img src={item.image_refs[0]} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <Camera className="h-6 w-6 text-titanium-700" />
               </div>
             )}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Maximize2 className="h-5 w-5 text-white" />
+            </div>
             {item?.image_refs && item.image_refs.length > 1 && (
               <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-black/80 text-[8px] font-black text-white backdrop-blur-md">
                 +{item.image_refs.length - 1}
@@ -420,6 +429,14 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 </button>
               ))}
             </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {showGallery && (
+            <PhotoGalleryModal 
+              item={item}
+              onClose={() => setShowGallery(false)}
+            />
           )}
         </AnimatePresence>
       </div>
