@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
     // 1. AI EXTRAPOLATION
     const aiResult = await extrapolateItemFromText(description, (model as ModelType) || 'flash');
-    const scanCost = calculateBurnRate(aiResult.usage, (model as ModelType) || 'flash');
+    const scanCost = calculateBurnRate((model as ModelType) || 'flash', aiResult.usage);
 
     // 1.5 GET NEXT ITEM NUMBER
     const { count } = await supabase
