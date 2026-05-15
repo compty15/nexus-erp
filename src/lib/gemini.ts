@@ -10,17 +10,15 @@ const COSTS = {
   "gemini-2.5-pro": { input: 0.00125, output: 0.00375 },
   "gemini-3-flash-preview": { input: 0.0001, output: 0.0004 },
   "gemini-3-pro-preview": { input: 0.00125, output: 0.00375 },
-  "gemini-3.1-pro-preview": { input: 0.00125, output: 0.00375 },
 };
 
-export type ModelType = "flash" | "pro-2.5" | "flash-3.0" | "pro-3.0" | "pro-3.1";
+export type ModelType = "flash" | "pro-2.5" | "flash-3.0" | "pro-3.0";
 
 const MODEL_MAP: Record<ModelType, string> = {
   "flash": "gemini-2.5-flash",
   "pro-2.5": "gemini-2.5-pro",
   "flash-3.0": "gemini-3-flash-preview",
   "pro-3.0": "gemini-3-pro-preview",
-  "pro-3.1": "gemini-3.1-pro-preview",
 };
 
 const SAFETY_SETTINGS = [
@@ -137,7 +135,7 @@ export async function groupPhotos(images: { data: string; mimeType: string }[]) 
  * Stage 1: Flash Scan
  * Rapid identification with deeper initial metadata extraction
  */
-export async function flashScan(images: { data: string; mimeType: string }[], modelType: ModelType = "flash") {
+export async function flashScan(images: { data: string; mimeType: string }[], modelType: ModelType = "pro-3.0") {
   const model = genAI.getGenerativeModel({ 
     model: MODEL_MAP[modelType],
     generationConfig: { responseMimeType: "application/json" },

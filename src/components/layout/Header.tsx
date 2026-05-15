@@ -15,7 +15,6 @@ export default function Header() {
     { id: 'pro-2.5', label: 'PRO-2.5', icon: Cpu, color: 'text-purple-400' },
     { id: 'flash-3.0', label: 'FLS-3.0', icon: Zap, color: 'text-emerald-400' },
     { id: 'pro-3.0', label: 'PRO-3.0', icon: Cpu, color: 'text-orange-400' },
-    { id: 'pro-3.1', label: 'PRO-3.1', icon: BrainCircuit, color: 'text-white' },
   ];
 
   const pathname = usePathname();

@@ -274,7 +274,6 @@ export default function Home() {
                                 { id: 'pro-2.5', label: 'PRO-2.5', speed: 'SMART' },
                                 { id: 'flash-3.0', label: 'FLS-3.0', speed: 'NEWEST' },
                                 { id: 'pro-3.0', label: 'PRO-3.0', speed: 'ELITE' },
-                                { id: 'pro-3.1', label: 'PRO-3.1', speed: 'MAX' },
                               ].map((m) => (
                                 <button
                                   key={m.id}

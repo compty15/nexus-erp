@@ -5,7 +5,7 @@ export type PlanTier = 'standard' | 'pro' | 'elite';
 export const MODEL_AVAILABILITY: Record<PlanTier, string[]> = {
   standard: ['flash'],
   pro: ['flash', 'pro-2.5', 'flash-3.0'],
-  elite: ['flash', 'pro-2.5', 'flash-3.0', 'pro-3.0', 'pro-3.1'],
+  elite: ['flash', 'pro-2.5', 'flash-3.0', 'pro-3.0'],
 };
 
 interface PlanState {
