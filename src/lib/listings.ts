@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '@/shared/lib/supabase';
 
 export type Platform = 'ebay' | 'fb' | 'etsy' | 'shopify';
 

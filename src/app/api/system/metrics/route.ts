@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/shared/lib/supabase-server';
 
 export async function GET() {
   try {
+    const supabase = await createClient();
     // 1. Fetch System Metrics (Cost, Tokens, Rows)
     const { data: metrics, error } = await supabase
       .from('system_metrics')

@@ -14,7 +14,7 @@ import {
   UserPlus,
   Share2
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/shared/lib/supabase';
 import { useNotifications } from '@/lib/notifications';
 
 export default function SettingsPage() {

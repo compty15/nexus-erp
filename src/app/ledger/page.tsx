@@ -12,7 +12,7 @@ import {
   Filter,
   ArrowUpRight
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/shared/lib/supabase';
 
 export default function LedgerPage() {
   const [soldItems, setSoldItems] = useState<any[]>([]);

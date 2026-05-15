@@ -11,7 +11,7 @@ import {
   Calculator,
   ArrowRight
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/shared/lib/supabase';
 
 interface MarkAsSoldModalProps {
   item: any;

@@ -30,7 +30,7 @@ export const InventoryItemSchema = z.object({
   brand: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
   quantity: z.number().default(1),
-  status: z.enum(['draft', 'identified', 'needs_review', 'sold', 'archived', 'deleted']).default('identified'),
+  status: z.enum(['draft', 'identified', 'needs_review', 'listed', 'sold', 'archived', 'deleted']).default('identified'),
   
   // Specs spread
   weight_raw: z.number().nullable().optional(),
