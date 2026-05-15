@@ -37,10 +37,12 @@ export class JobOrchestrator {
   
   static async startInventoryScan(files: File[], branchId: string, modelType: string): Promise<string> {
     const store = useQueueStore.getState();
-    
+    const { data: { user } } = await supabase.auth.getUser();
+
     // 1. Create a pending job in the local store & database
     const newJob: Job = {
       id: crypto.randomUUID(),
+      user_id: user?.id,
       status: 'pending',
       type: 'inventory_scan',
       payload: { fileCount: files.length, model: modelType },
@@ -237,9 +239,11 @@ export class JobOrchestrator {
 
   static async startTextExtrapolation(description: string, branchId: string, modelType: string): Promise<string> {
     const store = useQueueStore.getState();
+    const { data: { user } } = await supabase.auth.getUser();
     
     const newJob: Job = {
       id: crypto.randomUUID(),
+      user_id: user?.id,
       status: 'pending',
       type: 'text_extrapolation',
       payload: { description, model: modelType },

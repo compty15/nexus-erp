@@ -65,6 +65,7 @@ export const JobSchema = z.object({
   payload: z.any(),
   result: z.any().nullable().optional(),
   error: z.string().nullable().optional(),
+  user_id: z.string().uuid().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });

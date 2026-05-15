@@ -34,23 +34,45 @@ export default function SettingsPage() {
   }, []);
 
   async function fetchSettings() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const { data, error } = await supabase
       .from('user_settings')
       .select('*')
-      .eq('id', '00000000-0000-0000-0000-000000000000')
+      .eq('id', user.id)
       .single();
 
     if (data) {
       setSettings(data);
+    } else {
+      // Auto-initialize settings for new users if they don't exist
+      const defaultSettings = {
+        id: user.id,
+        unit_system: 'imperial',
+        default_fee_percent: 13.25,
+        updated_at: new Date().toISOString()
+      };
+      
+      const { error: initError } = await supabase.from('user_settings').insert(defaultSettings);
+      if (!initError) {
+        setSettings(defaultSettings as any);
+      }
     }
     setLoading(false);
   }
 
   async function handleSave() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      addNotification({ type: 'error', title: 'Unauthorized', message: 'You must be logged in to save settings.' });
+      return;
+    }
+
     const { error } = await supabase
       .from('user_settings')
       .upsert({ 
-        id: '00000000-0000-0000-0000-000000000000',
+        id: user.id,
         ...settings,
         updated_at: new Date().toISOString()
       });
