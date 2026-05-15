@@ -260,7 +260,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                     className="flex items-center justify-center min-w-[2.5rem] h-6 rounded-full bg-titanium-500/10 border border-titanium-500/20 px-2 py-0.5 hover:bg-titanium-500/20 transition-all group/qty"
                   >
                     <span className="text-[9px] font-black text-titanium-400 group-hover/qty:text-white uppercase tracking-tighter">Qty:</span>
-                    <span className="ml-1 text-[10px] font-black text-white">{item?.quantity || 1}</span>
+                    <span className="ml-1 text-[10px] font-black text-white">{(item?.quantity || 1).toString().padStart(2, '0')}</span>
                   </button>
                 )}
               </div>
