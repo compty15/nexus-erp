@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/shared/lib/supabase-server';
-import { flashScan, calculateBurnRate } from '@/lib/gemini';
+import { flashScan, calculateBurnRate, ModelType } from '@/lib/gemini';
 
 // 🚀 Standard Node.js runtime for better stability with large images and long AI calls
 export const runtime = 'nodejs';
