@@ -97,8 +97,13 @@ export async function groupPhotos(images: { data: string; mimeType: string }[]) 
   });
   
   const prompt = `Analyze these images and group them by item. 
-  Images are provided in sequence. Return a JSON mapping of item names to image indices.
-  Example: { "groups": [ { "name": "Micrometer", "indices": [0, 2] }, { "name": "Lathe", "indices": [1] } ] }`;
+  Images are provided in sequence. Identify which images belong to the same physical item.
+  Return a JSON object with a "clusters" key containing an array of groups.
+  Each group should have:
+  - "item_name": A short descriptive name for the item.
+  - "indices": An array of numbers corresponding to the 0-indexed position of the images.
+  
+  Example: { "clusters": [ { "item_name": "Digital Micrometer", "indices": [0, 2] }, { "item_name": "Lathe Tool", "indices": [1] } ] }`;
 
   const parts = [
     prompt,

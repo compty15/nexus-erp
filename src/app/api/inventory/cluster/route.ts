@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { groupPhotos } from '@/lib/gemini';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,43 +11,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid imageUrls' }, { status: 400 });
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    const prompt = `
-      You are an inventory specialist. I am giving you a list of image URLs.
-      Identify which images belong to the same physical item.
-      
-      Return a JSON array of groups. Each group should have:
-      - "item_name": A short descriptive name for the item.
-      - "indices": An array of numbers corresponding to the index of the image in the input list.
-      
-      Example Input: [url0, url1, url2]
-      Example Output: [{"item_name": "Digital Micrometer", "indices": [0, 1]}, {"item_name": "Calipers", "indices": [2]}]
-      
-      CRITICAL: Return ONLY valid JSON. No markdown blocks.
-    `;
-
     const mediaParts = await Promise.all(
       imageUrls.map(async (url) => {
         const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`Failed to fetch image: ${url}`);
+        
+        const mimeType = resp.headers.get('content-type') || 'image/jpeg';
         const buffer = await resp.arrayBuffer();
+        
         return {
-          inlineData: {
-            data: Buffer.from(buffer).toString('base64'),
-            mimeType: 'image/jpeg'
-          }
+          data: Buffer.from(buffer).toString('base64'),
+          mimeType
         };
       })
     );
 
-    const result = await model.generateContent([prompt, ...mediaParts]);
-    const text = result.response.text().replace(/```json|```/g, '').trim();
-    const clusters = JSON.parse(text);
-
-    return NextResponse.json({ clusters });
+    const result = await groupPhotos(mediaParts);
+    
+    // Result should already be { clusters: [...] } based on updated groupPhotos prompt
+    return NextResponse.json(result);
 
   } catch (error: any) {
-    console.error('Clustering Error:', error);
+    console.error('Clustering API Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
