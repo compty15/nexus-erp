@@ -51,7 +51,11 @@ export default function SoldPage() {
                   cost: `$${item.cost_metadata?.last_scan_cost?.toFixed(2) || '0.00'}`,
                   image: item.image_refs?.[0] || null,
                   image_refs: item.image_refs || [],
-                  ebay_description: item.metadata?.drafts?.ebay?.description
+                  ebay_description: item.metadata?.drafts?.ebay?.description,
+                  weight_raw: item.weight_raw,
+                  length_in: item.length_in,
+                  width_in: item.width_in,
+                  height_in: item.height_in
                 }} 
               />
             </motion.div>

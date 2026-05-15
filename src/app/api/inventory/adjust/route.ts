@@ -45,15 +45,17 @@ export async function POST(req: NextRequest) {
       }
     };
     
+    const manualDescription = updates.ebay_description;
+    
     let dbUpdates: any = {
       name: updates.name || aiResult.data.name || item.name,
       brand: updates.brand || aiResult.data.brand || item.brand,
       category: updates.category || aiResult.data.category || item.category,
       weight_raw: updates.weight_raw !== undefined ? updates.weight_raw : (aiResult.data.estimated_weight_lbs || item.weight_raw),
       price_range: updates.price_range || aiResult.data.price_range || item.price_range,
-      length_in: updates.length_in !== undefined ? updates.length_in : item.length_in,
-      width_in: updates.width_in !== undefined ? updates.width_in : item.width_in,
-      height_in: updates.height_in !== undefined ? updates.height_in : item.height_in,
+      length_in: updates.length_in !== undefined ? updates.length_in : (aiResult.data.length_in || item.length_in),
+      width_in: updates.width_in !== undefined ? updates.width_in : (aiResult.data.width_in || item.width_in),
+      height_in: updates.height_in !== undefined ? updates.height_in : (aiResult.data.height_in || item.height_in),
       quantity: updates.quantity !== undefined ? updates.quantity : item.quantity,
       cost_metadata: {
         ...item.cost_metadata,
@@ -64,7 +66,13 @@ export async function POST(req: NextRequest) {
         ...existingMetadata,
         ...aiResult.data,
         last_model: modelType,
-        drafts: aiResult.data.drafts || existingMetadata.drafts,
+        short_description: manualDescription || aiResult.data.short_description || existingMetadata.short_description,
+        drafts: {
+          ...(aiResult.data.drafts || existingMetadata.drafts),
+          ebay: manualDescription 
+            ? { ...(aiResult.data.drafts?.ebay || {}), description: manualDescription }
+            : (aiResult.data.drafts?.ebay || existingMetadata.drafts?.ebay)
+        },
         scan_history: [...existingHistory, newHistoryEntry]
       },
       updated_at: new Date().toISOString()

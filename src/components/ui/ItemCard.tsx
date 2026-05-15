@@ -43,15 +43,15 @@ interface ItemCardProps {
     price: string;
     cost: string;
     totalCost?: string;
-    weight?: number;
-    length?: number;
-    width?: number;
-    height?: number;
     image?: string | null;
     image_refs?: string[];
     ebay_description?: string;
     quantity?: number;
     price_range?: { min: number; max: number; currency: string } | null;
+    weight_raw?: number | null;
+    length_in?: number | null;
+    width_in?: number | null;
+    height_in?: number | null;
   };
 }
 
@@ -81,10 +81,10 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
       category: item.category,
       quantity: item.quantity || 1,
       price: item.price,
-      weight: item.weight || 0,
-      length: item.length || 0,
-      width: item.width || 0,
-      height: item.height || 0,
+      weight_raw: item.weight_raw || 0,
+      length_in: item.length_in || 0,
+      width_in: item.width_in || 0,
+      height_in: item.height_in || 0,
       ebay_description: item.ebay_description || ''
     });
     setIsEditing(true);
@@ -329,11 +329,20 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
                 <span className="text-[10px] font-bold text-white truncate">{item?.category || '-'}</span>
               )}
             </div>
-            <div className="flex flex-col justify-center rounded-xl bg-white/5 p-2 border border-white/5">
+            <div className="flex flex-col justify-center rounded-xl bg-white/5 p-2 border border-white/5 transition-all">
               <span className="text-[7px] font-black uppercase tracking-widest text-titanium-500">Weight</span>
-              <span className="text-[10px] font-bold text-white truncate">
-                {formatUnit(item?.weight || 0, 'weight', unitSystem)}
-              </span>
+              {isEditing ? (
+                <input 
+                  type="number"
+                  value={editValues.weight_raw}
+                  onChange={(e) => setEditValues({ ...editValues, weight_raw: parseFloat(e.target.value) })}
+                  className="w-full bg-transparent border-none p-0 text-[10px] font-bold text-white focus:ring-0"
+                />
+              ) : (
+                <span className="text-[10px] font-bold text-white truncate">
+                  {formatUnit(item?.weight_raw || 0, 'weight', unitSystem)}
+                </span>
+              )}
             </div>
           </div>
         </div>
