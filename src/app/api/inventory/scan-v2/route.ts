@@ -16,13 +16,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. FETCH FROM SUPABASE STORAGE
-    // We get the raw bytes from the public URLs to feed to Gemini
     const mediaParts = await Promise.all(
       imageUrls.map(async (url: string) => {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Failed to fetch media from ${url}`);
         const arrayBuffer = await res.arrayBuffer();
-        // Convert to base64 for Gemini API inlineData
         const base64Data = Buffer.from(arrayBuffer).toString('base64');
         return {
           data: base64Data,
@@ -30,6 +28,10 @@ export async function POST(req: NextRequest) {
         };
       })
     );
+
+    // 2. AI ANALYSIS
+    const aiResult = await flashScan(mediaParts, model || 'flash');
+    const scanCost = calculateBurnRate(model || 'flash', aiResult.usage);
 
     // 2.5 GET NEXT ITEM NUMBER
     const { count } = await supabase
