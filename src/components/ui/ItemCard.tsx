@@ -51,7 +51,7 @@ interface ItemCardProps {
     image_refs?: string[];
     ebay_description?: string;
     quantity?: number;
-    price_range?: { min: number; max: number; currency: string };
+    price_range?: { min: number; max: number; currency: string } | null;
   };
 }
 

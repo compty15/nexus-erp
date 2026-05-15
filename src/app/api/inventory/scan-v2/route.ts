@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
     );
 
     // 2. AI ANALYSIS
-    const aiResult = await flashScan(mediaParts, model || 'flash');
-    const scanCost = calculateBurnRate(model || 'flash', aiResult.usage);
+    const aiResult = await flashScan(mediaParts, (model as ModelType) || 'flash');
+    const scanCost = calculateBurnRate((model as ModelType) || 'flash', aiResult.usage);
 
     // 2.5 GET NEXT ITEM NUMBER
     const { count } = await supabase
