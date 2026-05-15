@@ -7,7 +7,8 @@ import { EngineProvider } from "@/lib/engine-context";
 import NotificationCenter from "@/components/ui/NotificationCenter";
 import Providers from "@/shared/lib/providers";
 import DynamicBackground from "@/components/ui/DynamicBackground";
-import { UIProvider, useUI } from "@/lib/ui-context";
+import { UIProvider } from "@/lib/ui-context";
+import ViewModeWrapper from "@/components/layout/ViewModeWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,28 +25,6 @@ export const metadata: Metadata = {
   description: "High-end universal inventory and business management",
 };
 
-function RootLayoutInner({ children }: { children: React.ReactNode }) {
-  const { viewMode } = useUI();
-  
-  return (
-    <body className={`${geistSans.variable} ${geistMono.variable} antialiased ${viewMode === 'mobile' ? 'mobile-mode' : ''}`} suppressHydrationWarning>
-      <Providers>
-        <EngineProvider>
-          <DynamicBackground />
-          <Header />
-          <main className="relative z-10 min-h-screen pt-20 pb-32 md:pb-20">
-            <div className="layout-container mx-auto transition-all duration-500 ease-in-out">
-              {children}
-            </div>
-          </main>
-          <BottomNav />
-          <NotificationCenter />
-        </EngineProvider>
-      </Providers>
-    </body>
-  );
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -53,11 +32,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <UIProvider>
-        <RootLayoutInner>
-          {children}
-        </RootLayoutInner>
-      </UIProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
+        <UIProvider>
+          <Providers>
+            <EngineProvider>
+              <DynamicBackground />
+              <Header />
+              <main className="relative z-10 min-h-screen pt-20 pb-32 md:pb-20">
+                <ViewModeWrapper>
+                  {children}
+                </ViewModeWrapper>
+              </main>
+              <BottomNav />
+              <NotificationCenter />
+            </EngineProvider>
+          </Providers>
+        </UIProvider>
+      </body>
     </html>
   );
 }
