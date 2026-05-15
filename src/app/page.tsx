@@ -93,9 +93,9 @@ export default function Home() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
+    <div className="mx-auto max-w-7xl px-4 pt-16 pb-24 md:px-8">
       {/* Dashboard Shortcuts */}
-      <section className="mb-12">
+      <section className="mb-12 mt-4">
         <h2 className="mb-6 text-[10px] font-black uppercase tracking-[0.4em] text-titanium-600 px-2">Navigation Nodes</h2>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {[
