@@ -14,9 +14,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No description provided' }, { status: 400 });
     }
 
-    // 1. AI EXTRAPOLATION
-    const aiResult = await extrapolateItemFromText(description, model as ModelType);
-    const scanCost = calculateBurnRate(model as ModelType, aiResult.usage);
+    // 1.5 GET NEXT ITEM NUMBER
+    const { count } = await supabase
+      .from('inventory')
+      .select('*', { count: 'exact', head: true })
+      .eq('branch_id', branchId);
+    
+    const itemNumber = (count || 0) + 1;
+    const itemCode = `#${itemNumber.toString().padStart(4, '0')}`;
 
     // 2. DATABASE INSERT
     const { data: item, error: invError } = await supabase
@@ -35,6 +40,8 @@ export async function POST(req: NextRequest) {
         },
         status: aiResult.data.needs_pro ? 'needs_review' : 'identified',
         metadata: {
+          item_code: itemCode,
+          last_model: model,
           input_description: description,
           usage: aiResult.usage,
           confidence: aiResult.data.confidence,

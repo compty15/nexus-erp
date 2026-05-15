@@ -31,12 +31,16 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // 2. AI IDENTIFICATION
-    const aiResult = await flashScan(mediaParts, model);
-    const scanCost = calculateBurnRate(model, aiResult.usage);
+    // 2.5 GET NEXT ITEM NUMBER
+    const { count } = await supabase
+      .from('inventory')
+      .select('*', { count: 'exact', head: true })
+      .eq('branch_id', branchId);
+    
+    const itemNumber = (count || 0) + 1;
+    const itemCode = `#${itemNumber.toString().padStart(4, '0')}`;
 
     // 3. DATABASE INSERT
-    // Note: We use the Supabase Storage URLs (imageUrls) instead of Drive IDs
     const { data: item, error: invError } = await supabase
       .from('inventory')
       .insert({
@@ -53,13 +57,15 @@ export async function POST(req: NextRequest) {
         },
         status: aiResult.data.needs_pro ? 'needs_review' : 'identified',
         metadata: {
+          item_code: itemCode,
+          last_model: model,
           usage: aiResult.usage,
           confidence: aiResult.data.confidence,
           needs_pro: aiResult.data.needs_pro,
           drafts: aiResult.data.drafts || {},
           scan_history: [{
             timestamp: new Date().toISOString(),
-            model: 'gemini-2.5-flash',
+            model: model || 'gemini-2.5-flash',
             data: aiResult.data
           }]
         }

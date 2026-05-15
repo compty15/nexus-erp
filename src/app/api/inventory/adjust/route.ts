@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         ...existingMetadata,
         ...aiResult.data,
+        last_model: modelType,
         drafts: aiResult.data.drafts || existingMetadata.drafts,
         scan_history: [...existingHistory, newHistoryEntry]
       },

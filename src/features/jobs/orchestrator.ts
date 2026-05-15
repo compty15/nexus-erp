@@ -89,30 +89,52 @@ export class JobOrchestrator {
       // Save URLs to payload so we can retry without re-uploading
       store.updateJob(newJob.id, { payload: { ...newJob.payload, imageUrls: storageUrls } });
 
-      // 3. Call the Next.js API route with timeout
-      const response = await fetchWithTimeout('/api/inventory/scan-v2', {
+      // 3. Clustering Stage (Stage B)
+      store.updateJob(newJob.id, { status: 'processing', payload: { ...newJob.payload, imageUrls: storageUrls, stage: 'clustering' } });
+      
+      const clusterRes = await fetch('/api/inventory/cluster', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jobId: newJob.id,
-          imageUrls: storageUrls,
-          branchId,
-          model
-        })
+        body: JSON.stringify({ imageUrls: storageUrls })
       });
 
-      if (!response.ok) {
-        throw new Error(await response.text());
+      if (!clusterRes.ok) throw new Error('Clustering stage failed.');
+      const { clusters } = await clusterRes.json();
+
+      // 4. Sequential Identification (Stage C)
+      const results = [];
+      for (const cluster of clusters) {
+        const clusterUrls = cluster.indices.map((idx: number) => storageUrls[idx]);
+        
+        store.updateJob(newJob.id, { 
+          payload: { 
+            ...newJob.payload, 
+            stage: `identifying_${cluster.item_name}`,
+            currentCluster: cluster.item_name 
+          } 
+        });
+
+        const scanRes = await fetchWithTimeout('/api/inventory/scan-v2', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobId: newJob.id,
+            imageUrls: clusterUrls,
+            branchId,
+            model
+          })
+        });
+
+        if (scanRes.ok) {
+          results.push(await scanRes.json());
+        }
       }
 
-      const result = await response.json();
-
-      // 4. Update Job as Completed
-      store.updateJob(newJob.id, { status: 'completed', result });
-      
+      // 5. Finalize
+      store.updateJob(newJob.id, { status: 'completed', result: { itemsDetected: results.length, details: results } });
       await supabase.from('jobs').update({ 
         status: 'completed', 
-        result 
+        result: { itemsDetected: results.length } 
       }).eq('id', newJob.id);
 
       return newJob.id;

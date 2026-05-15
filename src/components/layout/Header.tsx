@@ -4,6 +4,7 @@ import { Cpu, Zap, BrainCircuit, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useEngine, Engine } from '@/lib/engine-context';
 import { usePathname } from 'next/navigation';
+import { usePlan } from '@/shared/lib/hooks/usePlan';
 import TaskCenter from '../dashboard/TaskCenter';
 
 export default function Header() {
@@ -27,6 +28,8 @@ export default function Header() {
     { label: 'Trash', href: '/inventory/deleted' },
     { label: 'Settings', href: '/settings' },
   ];
+
+  const { tier, isModelAllowed } = usePlan();
 
   return (
     <header className="sticky top-0 z-50 w-full glass-panel px-2 py-2 sm:px-4 sm:py-3">
@@ -65,12 +68,18 @@ export default function Header() {
           {engines.map((e) => {
             const Icon = e.icon;
             const isActive = engine === e.id;
+            const isAllowed = isModelAllowed(e.id);
+            
             return (
               <button
                 key={e.id}
+                disabled={!isAllowed}
                 onClick={() => setEngine(e.id as Engine)}
+                title={isAllowed ? `Use ${e.label}` : 'Upgrade to use this model'}
                 className={`relative flex items-center gap-1.5 rounded-full px-2 py-1 sm:px-3 sm:py-1.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all flex-shrink-0 ${
-                  isActive ? 'text-white' : 'text-titanium-500 hover:text-titanium-200'
+                  isActive ? 'text-white' : 
+                  isAllowed ? 'text-titanium-500 hover:text-titanium-200' : 
+                  'text-titanium-800 cursor-not-allowed'
                 }`}
               >
                 {isActive && (
@@ -80,8 +89,15 @@ export default function Header() {
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <Icon className={`relative z-10 h-2.5 w-2.5 sm:h-3 sm:w-3 ${isActive ? 'text-white' : e.color}`} />
+                <Icon className={`relative z-10 h-2.5 w-2.5 sm:h-3 sm:w-3 ${
+                  isActive ? 'text-white' : 
+                  isAllowed ? e.color : 
+                  'text-titanium-900'
+                }`} />
                 <span className="relative z-10">{e.label}</span>
+                {!isAllowed && (
+                  <div className="absolute top-0 right-1 h-1.5 w-1.5 rounded-full bg-titanium-800 border border-black" />
+                )}
               </button>
             );
           })}
