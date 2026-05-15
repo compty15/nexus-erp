@@ -14,6 +14,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No description provided' }, { status: 400 });
     }
 
+    // 1. AI EXTRAPOLATION
+    const aiResult = await extrapolateItemFromText(description, (model as ModelType) || 'flash');
+    const scanCost = calculateBurnRate(aiResult.usage, (model as ModelType) || 'flash');
+
     // 1.5 GET NEXT ITEM NUMBER
     const { count } = await supabase
       .from('inventory')
