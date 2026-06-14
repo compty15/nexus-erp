@@ -67,6 +67,18 @@ export default function Home() {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
+    const hasDng = files.some(file => file.name.toLowerCase().endsWith('.dng'));
+    if (hasDng) {
+      addNotification({
+        type: 'error',
+        title: 'Unsupported Format',
+        message: 'Apple ProRAW (.dng) files are not supported by Gemini. Please upload a standard JPEG/PNG or disable ProRAW in your camera settings.',
+        duration: 8000
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     try {
       addNotification({ 
         type: 'info', 
