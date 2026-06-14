@@ -100,7 +100,7 @@ export function calculateBurnRate(model: ModelType, usage: any) {
  */
 export async function groupPhotos(images: { data: string; mimeType: string }[]) {
   const model = genAI.getGenerativeModel({ 
-    model: MODEL_MAP.flash,
+    model: MODEL_MAP["flash-1.5"],
     generationConfig: { responseMimeType: "application/json" },
     safetySettings: SAFETY_SETTINGS
   });
