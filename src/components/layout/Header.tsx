@@ -15,10 +15,10 @@ export default function Header() {
   const engines = [
     { id: 'flash-1.5', label: 'FLS-1.5', icon: Zap, color: 'text-cyan-400' },
     { id: 'flash', label: 'FLS-2.5', icon: Zap, color: 'text-blue-400' },
-    { id: 'flash-3.0', label: 'FLS-3.0', icon: Zap, color: 'text-emerald-400' },
+    { id: 'flash-3.5', label: 'FLS-3.5', icon: Zap, color: 'text-emerald-400' },
     { id: 'pro-1.5', label: 'PRO-1.5', icon: Cpu, color: 'text-pink-400' },
     { id: 'pro-2.5', label: 'PRO-2.5', icon: Cpu, color: 'text-purple-400' },
-    { id: 'pro-3.0', label: 'PRO-3.0', icon: Cpu, color: 'text-orange-400' },
+    { id: 'pro-3.1', label: 'PRO-3.1', icon: Cpu, color: 'text-orange-400' },
   ];
 
   const pathname = usePathname();

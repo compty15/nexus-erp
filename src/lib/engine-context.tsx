@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export type Engine = 'flash-1.5' | 'flash' | 'flash-3.0' | 'pro-1.5' | 'pro-2.5' | 'pro-3.0';
+export type Engine = 'flash-1.5' | 'flash' | 'flash-3.5' | 'pro-1.5' | 'pro-2.5' | 'pro-3.1';
 
 interface EngineContextType {
   engine: Engine;
@@ -12,7 +12,7 @@ interface EngineContextType {
 const EngineContext = createContext<EngineContextType | undefined>(undefined);
 
 export function EngineProvider({ children }: { children: ReactNode }) {
-  const [engine, setEngine] = useState<Engine>('pro-3.0');
+  const [engine, setEngine] = useState<Engine>('pro-3.1');
 
   return (
     <EngineContext.Provider value={{ engine, setEngine }}>
