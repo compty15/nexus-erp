@@ -123,9 +123,22 @@ function renderInventory() {
                 <div class="mt-auto pt-6 border-t border-zinc-800/50 flex items-end justify-between self-stretch">
                     <div class="space-y-1">
                         <div id="status-${item.id}" class="mb-2">
-                            <button onclick="stageEbayDraft('${item.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[9px] font-bold px-2 py-1.5 rounded-md border border-zinc-700 leading-none transition-all">
-                                Stage as eBay Draft
-                            </button>
+                            ${item.status === 'Staged' ? `
+                                <div class="flex flex-col gap-1.5">
+                                    <span class="flex items-center gap-1.5 text-[9px] text-emerald-400 font-bold bg-emerald-950/80 px-2 py-1 rounded-md border border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                        Staged on Cloud
+                                    </span>
+                                    <button onclick="autofillEbay('${item.id}')" class="bg-orange-600 hover:bg-orange-500 text-white text-[9px] font-bold px-2 py-1.5 rounded-md border border-orange-500 leading-none transition-all flex items-center justify-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+                                        Auto-Fill on eBay
+                                    </button>
+                                </div>
+                            ` : `
+                                <button onclick="stageEbayDraft('${item.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[9px] font-bold px-2 py-1.5 rounded-md border border-zinc-700 leading-none transition-all">
+                                    Stage as eBay Draft
+                                </button>
+                            `}
                         </div>
                         <p class="text-[8px] text-zinc-500 uppercase tracking-tighter">Est. Fair Market</p>
                         <p class="price-tag leading-none mt-0.5">$${item.fair_market_price.toFixed(2)}</p>
@@ -258,6 +271,48 @@ async function saveNewListing() {
 window.openAddItemModal = openAddItemModal;
 window.closeAddItemModal = closeAddItemModal;
 window.saveNewListing = saveNewListing;
+
+async function autofillEbay(toolId) {
+    const tool = inventoryData.find(t => t.id === toolId);
+    if (!tool) return;
+
+    // Define the prompt that we want the user to paste into the AI chat
+    const prompt = `@Antigravity please run the browser subagent to fill out the eBay sales listing for the "${tool.brand} ${tool.model}" (ID: ${tool.id}) using the staged payload.`;
+
+    // Copy to clipboard
+    try {
+        await navigator.clipboard.writeText(prompt);
+        console.log("[AI-BRIDGE] Prompt successfully copied to clipboard.");
+    } catch (err) {
+        console.error("[AI-BRIDGE] Clipboard copy failed:", err);
+    }
+
+    // Open eBay listing creator in a new tab
+    window.open("https://www.ebay.com/sl/sell", "_blank");
+
+    // Display visual feedback to the user on the card
+    const statusContainer = document.getElementById(`status-${toolId}`);
+    if (statusContainer) {
+        const originalHTML = statusContainer.innerHTML;
+        statusContainer.innerHTML = `
+            <div class="flex flex-col gap-1.5">
+                <span class="flex items-center justify-center gap-1.5 text-[9px] text-orange-400 font-bold bg-orange-950/80 px-2 py-1.5 rounded-md border border-orange-500/50 shadow-[0_0_10px_rgba(249,115,22,0.3)] animate-pulse">
+                    ✓ Prompt Copied!
+                </span>
+                <span class="text-[7.5px] text-zinc-500 font-semibold italic text-center block leading-normal mt-0.5">
+                    Paste in Antigravity chat to auto-fill
+                </span>
+            </div>
+        `;
+        // Restore after a short delay
+        setTimeout(() => {
+            // Re-fetch standard staged view or original state
+            renderInventory();
+        }, 5000);
+    }
+}
+
+window.autofillEbay = autofillEbay;
 
 // Initial Render
 document.addEventListener('DOMContentLoaded', () => {

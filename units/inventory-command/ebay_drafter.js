@@ -38,18 +38,24 @@ async function stageEbayDraft(toolId) {
 
     console.log("[STAGING-DATA]:", JSON.stringify(payload, null, 2));
 
-    // Update UI to "Data Ready"
-    setTimeout(() => {
-        if (statusMsg) {
-            statusMsg.innerHTML = `
-                <span class="flex items-center gap-1.5 text-[10px] text-zinc-300 font-bold bg-zinc-800/80 px-2 py-1 rounded-md border border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M20 6 9 17l-5-5"/></svg>
-                    Draft Payload Semi-Staged
-                </span>
-            `;
-        }
-        console.log(`[AI-READY] I am ready to use the browser subagent to populate your eBay draft with this payload.`);
-    }, 1200);
+    try {
+        const { error } = await _supabase
+            .from('tools')
+            .update({
+                status: 'Staged',
+                metadata: {
+                    ...tool.metadata,
+                    ebay_payload: payload,
+                    ebay_staged_at: new Date().toISOString()
+                }
+            })
+            .eq('id', toolId);
+
+        if (error) throw error;
+        console.log(`[AI-BRIDGE] Successfully staged payload to Supabase for tool ID ${toolId}`);
+    } catch (err) {
+        console.error("[AI-BRIDGE] Failed to stage to Supabase:", err);
+    }
 }
 
 window.stageEbayDraft = stageEbayDraft;
