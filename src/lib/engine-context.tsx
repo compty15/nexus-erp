@@ -12,7 +12,7 @@ interface EngineContextType {
 const EngineContext = createContext<EngineContextType | undefined>(undefined);
 
 export function EngineProvider({ children }: { children: ReactNode }) {
-  const [engine, setEngine] = useState<Engine>('pro-2.5');
+  const [engine, setEngine] = useState<Engine>('flash-1.5');
 
   return (
     <EngineContext.Provider value={{ engine, setEngine }}>

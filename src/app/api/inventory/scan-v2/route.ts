@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await req.json();
-    const { jobId, imageUrls, branchId, modelType = 'pro-3.1' } = body;
+    const { jobId, imageUrls, branchId, modelType = 'pro-1.5' } = body;
 
     if (!imageUrls || imageUrls.length === 0) {
       return NextResponse.json({ error: 'No images provided' }, { status: 400 });

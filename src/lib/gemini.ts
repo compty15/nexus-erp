@@ -138,7 +138,7 @@ export async function groupPhotos(images: { data: string; mimeType: string }[]) 
  * Stage 1: Flash Scan
  * Rapid identification with deeper initial metadata extraction
  */
-export async function flashScan(images: { data: string; mimeType: string }[], modelType: ModelType = "pro-3.1") {
+export async function flashScan(images: { data: string; mimeType: string }[], modelType: ModelType = "flash-1.5") {
   const model = genAI.getGenerativeModel({ 
     model: MODEL_MAP[modelType],
     generationConfig: { responseMimeType: "application/json" },
@@ -191,7 +191,7 @@ export async function flashScan(images: { data: string; mimeType: string }[], mo
 /**
  * Stage 2: Deep Dive (OCR & Metrology)
  */
-export async function deepDive(images: { data: string; mimeType: string }[], modelType: ModelType = "pro-2.5") {
+export async function deepDive(images: { data: string; mimeType: string }[], modelType: ModelType = "pro-1.5") {
   const model = genAI.getGenerativeModel({ 
     model: MODEL_MAP[modelType],
     generationConfig: { responseMimeType: "application/json" },

@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await req.json();
-    const { jobId, description, branchId, modelType = 'pro-3.1' } = body;
+    const { jobId, description, branchId, modelType = 'pro-1.5' } = body;
 
     if (!description) {
       return NextResponse.json({ error: 'No description provided' }, { status: 400 });
