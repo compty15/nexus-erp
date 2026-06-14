@@ -1,3 +1,4 @@
+// Version 1.0.1 - Stable Gemini 1.5 defaults
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { supabase } from "@/shared/lib/supabase";
 
