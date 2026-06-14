@@ -156,8 +156,11 @@ export class JobOrchestrator {
         body: JSON.stringify({ imageUrls: storageUrls })
       });
 
-      if (!clusterRes.ok) throw new Error('Clustering stage failed.');
-      const { clusters } = await clusterRes.json();
+      const clusterData = await clusterRes.json().catch(() => ({}));
+      if (!clusterRes.ok) {
+        throw new Error(clusterData.error || 'Clustering stage failed.');
+      }
+      const { clusters } = clusterData;
 
       // Sanity check: If we have many images but only 1 cluster, log it as suspicious
       if (storageUrls.length > 10 && clusters.length === 1) {
