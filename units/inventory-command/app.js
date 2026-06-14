@@ -3,8 +3,8 @@
  * Live Real-time Logic & Supabase Sync
  */
 
-const SUPABASE_URL = 'https://lcylseuwnybtunpiuqyg.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxjeWxzZXV3bnlidHVucGl1cXlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNTgyNjgsImV4cCI6MjA5MDgzNDI2OH0.4B44VqXiFlUNwwmjqVMFfGDnnrbyNFvkyKUZKApumf0';
+const SUPABASE_URL = 'https://oathlydlyukbqiypospp.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_0m4UdTAf8ajxD5dRlLRGpw_Yq93j2ch';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let inventoryData = [];
