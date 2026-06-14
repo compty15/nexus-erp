@@ -122,7 +122,7 @@ export default function PhotoGalleryModal({ item, onClose, initialIndex = 0 }: P
       </div>
 
       {/* Main Viewport */}
-      <div className="flex-1 relative flex items-center justify-center p-4 md:p-12">
+      <div className="flex-1 relative min-h-0 flex items-center justify-center">
         <button 
           onClick={handlePrev}
           className="absolute left-8 z-10 p-4 rounded-full bg-black/40 text-white hover:bg-black/60 transition-all border border-white/5"
@@ -136,7 +136,7 @@ export default function PhotoGalleryModal({ item, onClose, initialIndex = 0 }: P
             initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
-            className="relative h-full w-full flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center p-4 md:p-12"
           >
             <img 
               src={currentPhoto} 
