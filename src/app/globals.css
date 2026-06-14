@@ -4,37 +4,37 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   
-  --color-background: #0d0d0d;
+  --color-background: #030008;
   --color-foreground: #ffffff;
-  --color-primary: #cbd5e1;
-  --color-secondary: #94a3b8;
-  --color-accent: #475569;
+  --color-primary: #c084fc;
+  --color-secondary: #34d399;
+  --color-accent: #8b5cf6;
   --color-danger: #ef4444;
-  --color-card-bg: rgba(22, 22, 22, 0.8);
-  --color-border: rgba(255, 255, 255, 0.15);
+  --color-card-bg: rgba(9, 3, 24, 0.7);
+  --color-border: rgba(16, 185, 129, 0.15);
   
-  --color-uv-purple: #3b0764;
-  --color-emerald-deep: #064e3b;
-  --color-uv-glow: rgba(126, 34, 206, 0.2);
-  --color-emerald-glow: rgba(5, 150, 105, 0.1);
+  --color-uv-purple: #581c87;
+  --color-emerald-deep: #022415;
+  --color-uv-glow: rgba(168, 85, 247, 0.25);
+  --color-emerald-glow: rgba(16, 185, 129, 0.2);
   
-  --color-titanium-100: #f8fafc;
-  --color-titanium-200: #e2e8f0;
-  --color-titanium-300: #cbd5e1;
-  --color-titanium-400: #94a3b8;
-  --color-titanium-500: #64748b;
-  --color-titanium-600: #475569;
-  --color-titanium-700: #334155;
-  --color-titanium-800: #1e293b;
-  --color-titanium-900: #0f172a;
+  --color-titanium-100: #faf5ff;
+  --color-titanium-200: #e9d5ff;
+  --color-titanium-300: #c084fc;
+  --color-titanium-400: #a855f7;
+  --color-titanium-500: #8b5cf6;
+  --color-titanium-600: #7c3aed;
+  --color-titanium-700: #6d28d9;
+  --color-titanium-800: #581c87;
+  --color-titanium-900: #3b0764;
 }
 
 :root {
-  --background: #121212;
+  --background: #030008;
   --foreground: #ffffff;
-  --titanium-gradient: linear-gradient(135deg, #475569 0%, #1e293b 100%);
-  --glass-bg: rgba(28, 28, 28, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.15);
+  --titanium-gradient: linear-gradient(135deg, #3b0764 0%, #022415 100%);
+  --glass-bg: rgba(9, 3, 24, 0.7);
+  --glass-border: rgba(16, 185, 129, 0.15);
 }
 
 body {
