@@ -482,7 +482,7 @@ export default function ItemCard({ status = 'idle', item, unitSystem = 'imperial
               exit={{ opacity: 0, y: 10 }}
               className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar mt-1"
             >
-              {['flash', 'pro-2.5', 'flash-3.0', 'pro-3.0'].map((m) => (
+              {['flash-1.5', 'flash', 'flash-3.5', 'pro-1.5', 'pro-2.5', 'pro-3.1'].map((m) => (
                 <button
                   key={m}
                   onClick={() => handleRescan(m)}

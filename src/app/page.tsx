@@ -271,10 +271,12 @@ export default function Home() {
                             <p className="text-[8px] font-black uppercase tracking-[0.2em] text-titanium-500 mb-3 text-center italic">Select Recovery Engine:</p>
                             <div className="grid grid-cols-2 gap-2">
                               {[
-                                { id: 'flash', label: 'FLS-2.5', speed: 'FASTEST' },
+                                { id: 'flash-1.5', label: 'FLS-1.5', speed: 'CHEAPEST' },
+                                { id: 'flash', label: 'FLS-2.5', speed: 'FAST' },
+                                { id: 'flash-3.5', label: 'FLS-3.5', speed: 'NEWEST' },
+                                { id: 'pro-1.5', label: 'PRO-1.5', speed: 'BALANCED' },
                                 { id: 'pro-2.5', label: 'PRO-2.5', speed: 'SMART' },
-                                { id: 'flash-3.0', label: 'FLS-3.0', speed: 'NEWEST' },
-                                { id: 'pro-3.0', label: 'PRO-3.0', speed: 'ELITE' },
+                                { id: 'pro-3.1', label: 'PRO-3.1', speed: 'ELITE' },
                               ].map((m) => (
                                 <button
                                   key={m.id}
