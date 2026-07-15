@@ -274,7 +274,7 @@ export default function FinanceHub() {
           <div className="w-16 h-16 rounded-2xl bg-orange-600 flex items-center justify-center shadow-[0_0_30px_rgba(234,88,12,0.4)] mx-auto mb-6">
             <Brain className="w-8 h-8 text-white" />
           </div>
-          <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 mb-2">Metropolis Authentication</h4>
+          <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 mb-2">Nexus Authentication</h4>
           <h1 className="text-3xl font-black italic tracking-tighter text-white uppercase mb-8">
             {isSignUp ? 'Create ' : 'Vault '}<span className="text-orange-500 underline decoration-zinc-800 underline-offset-4">{isSignUp ? 'Account' : 'Locked'}</span>
           </h1>
@@ -341,7 +341,7 @@ export default function FinanceHub() {
              <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center shadow-[0_0_15px_rgba(234,88,12,0.4)]">
                 <LayoutDashboard className="w-5 h-5 text-white" />
              </div>
-             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Metropolis Intelligence</h4>
+             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Nexus Intelligence</h4>
           </div>
           <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter text-white uppercase leading-none">
             Finance <span className="text-orange-500 underline decoration-zinc-800 underline-offset-8">Hub</span>
@@ -578,7 +578,7 @@ export default function FinanceHub() {
         </div>
       </div>
     ) : (
-          /* ADMIN VIEW: METROPOLIS FINANCIAL HUB */
+          /* ADMIN VIEW: NEXUS FINANCIAL HUB */
           <>
             <StatusBanner 
               status={systemStatus?.state || 'Active'} 
