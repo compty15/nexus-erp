@@ -1,4 +1,4 @@
-'use client';
+'use client'; // Vercel rebuild trigger: RLS isolated hub
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabase';
 import FinanceGauge from '../components/FinanceGauge';
