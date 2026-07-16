@@ -1,11 +1,13 @@
-'use client'
+"use client"
 import { useState } from "react"
 import { LayoutGrid, List, Maximize, Search, Plus } from "lucide-react"
 import { NewItemModal } from "@/components/NewItemModal"
+import { ItemDetailsModal } from "@/components/ItemDetailsModal"
 
 export default function ItemsView({ initialItems }: { initialItems: any[] }) {
   const [viewMode, setViewMode] = useState<"grid" | "list" | "large">("grid")
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedItem, setSelectedItem] = useState<any | null>(null)
   const [search, setSearch] = useState("")
 
   const filteredItems = initialItems.filter(item => 
@@ -16,6 +18,12 @@ export default function ItemsView({ initialItems }: { initialItems: any[] }) {
   return (
     <div className="flex flex-col gap-6">
       {isModalOpen && <NewItemModal onClose={() => setIsModalOpen(false)} />}
+      {selectedItem && (
+        <ItemDetailsModal 
+          item={selectedItem} 
+          onClose={() => setSelectedItem(null)} 
+        />
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Items & Inventory</h1>
@@ -83,11 +91,9 @@ export default function ItemsView({ initialItems }: { initialItems: any[] }) {
           {filteredItems.map(item => (
             <ItemCard 
               key={item.id} 
+              item={item}
               viewMode={viewMode} 
-              title={item.title} 
-              id={item.id.substring(0, 8).toUpperCase()} 
-              price={`$${item.price?.toFixed(2) || '0.00'}`} 
-              stock={10} 
+              onSelect={() => setSelectedItem(item)}
             />
           ))}
         </div>
@@ -96,14 +102,27 @@ export default function ItemsView({ initialItems }: { initialItems: any[] }) {
   )
 }
 
-function ItemCard({ viewMode, title, id, price, stock }: { viewMode: string, title: string, id: string, price: string, stock: number }) {
+function ItemCard({ item, viewMode, onSelect }: { item: any, viewMode: string, onSelect: () => void }) {
+  const id = item.id.substring(0, 8).toUpperCase()
+  const price = `$${Number(item.price || 0).toFixed(2)}`
+  const stock = 10
+
   if (viewMode === "list") {
     return (
-      <div className="flex items-center justify-between border border-border bg-card p-4 rounded-xl shadow-sm hover:border-primary/50 transition-all cursor-pointer">
+      <div 
+        onClick={onSelect}
+        className="flex items-center justify-between border border-border bg-card p-4 rounded-xl shadow-sm hover:border-primary/50 transition-all cursor-pointer"
+      >
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-secondary rounded-lg flex items-center justify-center text-muted-foreground">IMG</div>
+          <div className="w-16 h-16 bg-secondary rounded-lg overflow-hidden flex items-center justify-center text-muted-foreground shrink-0 border border-border">
+            {item.image_url ? (
+              <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+            ) : (
+              "IMG"
+            )}
+          </div>
           <div>
-            <h3 className="font-semibold text-foreground">{title}</h3>
+            <h3 className="font-semibold text-foreground line-clamp-1">{item.title}</h3>
             <span className="text-xs text-muted-foreground">#{id}</span>
           </div>
         </div>
@@ -114,21 +133,28 @@ function ItemCard({ viewMode, title, id, price, stock }: { viewMode: string, tit
               {stock > 0 ? `${stock} in stock` : "Out of stock"}
             </div>
           </div>
-          <button className="text-primary text-sm font-medium hover:underline">Edit</button>
+          <button className="text-primary text-sm font-medium hover:underline">View</button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={`border border-border bg-card rounded-xl shadow-sm overflow-hidden flex flex-col hover:border-primary/50 transition-all cursor-pointer ${viewMode === "large" ? "h-96" : "h-72"}`}>
-      <div className="flex-1 bg-secondary flex items-center justify-center text-muted-foreground">
-        Image Placeholder
+    <div 
+      onClick={onSelect}
+      className={`border border-border bg-card rounded-xl shadow-sm overflow-hidden flex flex-col hover:border-primary/50 transition-all cursor-pointer ${viewMode === "large" ? "h-96" : "h-72"}`}
+    >
+      <div className="flex-1 bg-secondary overflow-hidden flex items-center justify-center text-muted-foreground border-b border-border">
+        {item.image_url ? (
+          <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+        ) : (
+          "No Image"
+        )}
       </div>
-      <div className="p-4 flex flex-col gap-1 border-t border-border">
+      <div className="p-4 flex flex-col gap-1">
         <div className="flex justify-between items-start">
-          <h3 className="font-semibold text-foreground truncate pr-2">{title}</h3>
-          <span className="font-medium text-primary">{price}</span>
+          <h3 className="font-semibold text-foreground truncate pr-2">{item.title}</h3>
+          <span className="font-medium text-primary shrink-0">{price}</span>
         </div>
         <div className="flex justify-between items-center mt-2">
           <span className="text-xs text-muted-foreground">#{id}</span>

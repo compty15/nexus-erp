@@ -1,15 +1,28 @@
 import { Home, Package, Truck, Users, Settings, Wrench, ShieldAlert } from 'lucide-react'
 import Link from 'next/link'
+import { WorkspaceSwitcher } from './WorkspaceSwitcher'
 
-export function Sidebar() {
+interface Workspace {
+  id: string
+  name: string
+}
+
+interface SidebarProps {
+  workspaces: Workspace[]
+  activeTeamId: string
+  activeTeamName: string
+}
+
+export function Sidebar({ workspaces, activeTeamId, activeTeamName }: SidebarProps) {
   return (
     <div className="w-64 border-r border-border bg-card h-screen flex flex-col fixed left-0 top-0">
-      <div className="h-16 flex items-center px-6 border-b border-border">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="font-bold text-primary-foreground text-xl">N</span>
-          </div>
-          <span className="font-bold text-xl text-foreground">Nexx-Top</span>
+      <div className="h-16 flex items-center px-4 border-b border-border">
+        <div className="w-full">
+          <WorkspaceSwitcher 
+            workspaces={workspaces} 
+            activeTeamId={activeTeamId} 
+            activeTeamName={activeTeamName} 
+          />
         </div>
       </div>
       

@@ -34,12 +34,28 @@ export async function getUserTeamId() {
   
   if (!user) return null;
   
-  const { data: teamMember } = await supabase
+  const cookieStore = await cookies();
+  const activeTeamId = cookieStore.get('active_team_id')?.value;
+  
+  if (activeTeamId) {
+    const { data: membership } = await supabase
+      .from('team_members')
+      .select('team_id')
+      .eq('user_id', user.id)
+      .eq('team_id', activeTeamId)
+      .limit(1);
+      
+    if (membership && membership.length > 0) {
+      return membership[0].team_id;
+    }
+  }
+  
+  const { data: teamMembers } = await supabase
     .from('team_members')
     .select('team_id')
     .eq('user_id', user.id)
-    .single();
+    .limit(1);
     
-  return teamMember?.team_id || null;
+  return teamMembers?.[0]?.team_id || null;
 }
 

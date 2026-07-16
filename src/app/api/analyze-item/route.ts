@@ -6,7 +6,7 @@ export const maxDuration = 60; // Allow up to 60 seconds for AI processing (Verc
 
 export async function POST(req: Request) {
   try {
-    const { imageBase64, userContext } = await req.json();
+    const { imageBase64, userContext, aiModel } = await req.json();
 
     if (!imageBase64) {
       return new Response('No image provided', { status: 400 });
@@ -16,9 +16,16 @@ export async function POST(req: Request) {
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
 
+    // Select the model based on user input
+    let selectedModel;
+    if (aiModel === 'gemini-1.5-flash-latest') {
+      selectedModel = google('gemini-1.5-flash-latest');
+    } else {
+      selectedModel = google('gemini-1.5-pro-latest'); // default
+    }
+
     const result = await streamObject({
-      // We use Gemini 1.5 Pro since it has the most advanced multimodal capabilities for complex items
-      model: google('gemini-1.5-pro-latest'),
+      model: selectedModel,
       schema: z.object({
         scientific: z.object({
           year: z.string().describe('The specific year, a year range (e.g. 1980-1985), or "Unknown" if it absolutely cannot be determined without guessing.'),

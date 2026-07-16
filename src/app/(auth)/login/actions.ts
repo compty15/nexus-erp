@@ -11,17 +11,23 @@ export async function login(formData: FormData) {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   }
+  
+  const nextUrl = formData.get('nextUrl') as string
 
   const { error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
     console.error("Login Error:", error)
-    // Normally you'd return an error message to the client here
-    return redirect('/login?error=true')
+    return redirect(`/login?error=true${nextUrl ? `&next=${encodeURIComponent(nextUrl)}` : ''}`)
   }
 
   revalidatePath('/', 'layout')
-  redirect('/items')
+  
+  if (nextUrl) {
+    redirect(nextUrl)
+  }
+  
+  redirect('/')
 }
 
 export async function signup(formData: FormData) {
@@ -39,6 +45,5 @@ export async function signup(formData: FormData) {
     return redirect('/login?error=true')
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/items')
+  redirect('/login?verify=true')
 }

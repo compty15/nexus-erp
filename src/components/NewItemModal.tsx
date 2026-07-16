@@ -1,9 +1,10 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { X, Upload, Loader2, Sparkles } from "lucide-react"
 import imageCompression from "browser-image-compression"
 import { experimental_useObject as useObject } from '@ai-sdk/react'
 import { z } from 'zod'
+import { ListingChannels } from "./ListingChannels"
 
 interface NewItemModalProps {
   onClose: () => void
@@ -15,10 +16,11 @@ export function NewItemModal({ onClose }: NewItemModalProps) {
   const [isCompressing, setIsCompressing] = useState(false)
   const [imageBase64, setImageBase64] = useState<string | null>(null)
   
+  const [aiModel, setAiModel] = useState("gemini-1.5-pro-latest")
   const [userComments, setUserComments] = useState("")
   const [generatedTitle, setGeneratedTitle] = useState("")
   const [generatedDesc, setGeneratedDesc] = useState("")
-  const [generatedPrice, setGeneratedPrice] = useState("0.00")
+  const [generatedPrice, setGeneratedPrice] = useState("")
   const [isSaving, setIsSaving] = useState(false)
 
   const { object: generatedItem, submit: generateItem, isLoading: isGenerating } = useObject({
@@ -45,6 +47,15 @@ export function NewItemModal({ onClose }: NewItemModalProps) {
       item_name: z.string()
     })
   });
+
+  useEffect(() => {
+    if (generatedItem?.item_name) {
+      setGeneratedTitle(generatedItem.item_name);
+    }
+    if (generatedItem?.estimated_value) {
+      setGeneratedPrice(generatedItem.estimated_value);
+    }
+  }, [generatedItem?.item_name, generatedItem?.estimated_value]);
   
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -94,14 +105,15 @@ export function NewItemModal({ onClose }: NewItemModalProps) {
     
     generateItem({ 
       imageBase64, 
-      userContext: userComments 
+      userContext: userComments,
+      aiModel
     })
   }
 
   const handleSaveItem = async () => {
     setIsSaving(true)
     try {
-      const { createItem } = await import('@/app/items/actions')
+      const { createItem } = await import('@/app/(dashboard)/items/actions')
       
       const fullDesc = `
 ### Scientific / Technical Details
@@ -124,7 +136,7 @@ export function NewItemModal({ onClose }: NewItemModalProps) {
       const finalTitle = generatedTitle || generatedItem?.item_name || "New Item"
       const finalPrice = generatedPrice || generatedItem?.estimated_value || "0.00"
 
-      await createItem(finalTitle, fullDesc, finalPrice, preview || "")
+      await createItem(finalTitle, fullDesc, finalPrice, preview || "", generatedItem)
       onClose()
     } catch (error) {
       console.error(error)
@@ -193,6 +205,18 @@ export function NewItemModal({ onClose }: NewItemModalProps) {
             {/* Form Area */}
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold">AI Model</label>
+                <select
+                  value={aiModel}
+                  onChange={(e) => setAiModel(e.target.value)}
+                  className="w-full bg-background border border-border rounded-lg p-3 text-sm focus:outline-none focus:border-primary"
+                >
+                  <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro (Best for Vision)</option>
+                  <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (Fastest)</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2 mt-2">
                 <label className="text-sm font-semibold">User Comments / Context</label>
                 <textarea 
                   value={userComments}
@@ -202,14 +226,19 @@ export function NewItemModal({ onClose }: NewItemModalProps) {
                 />
               </div>
               
-              <button 
-                onClick={handleGenerateListing}
-                disabled={!file || isGenerating || isCompressing}
-                className="w-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 p-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGenerating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-                <span>Auto-Generate Listing (AI)</span>
-              </button>
+              <div className="relative overflow-hidden rounded-lg mt-2">
+                {isGenerating && (
+                  <div className="absolute inset-0 bg-primary/20 w-full animate-[progress_2s_ease-in-out_infinite] z-0" style={{ backgroundImage: 'linear-gradient(90deg, transparent, rgba(var(--primary), 0.4), transparent)', backgroundSize: '200% 100%' }} />
+                )}
+                <button 
+                  onClick={handleGenerateListing}
+                  disabled={!file || isGenerating || isCompressing}
+                  className="relative z-10 w-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 p-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
+                >
+                  {isGenerating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                  <span>{isGenerating ? "Scanning & Generating..." : "Auto-Generate Listing (AI)"}</span>
+                </button>
+              </div>
               
               {(generatedItem || isGenerating) && (
                 <div className="flex flex-col gap-2 mt-2 animate-in fade-in slide-in-from-bottom-2">
@@ -274,6 +303,12 @@ export function NewItemModal({ onClose }: NewItemModalProps) {
             </div>
             
           </div>
+
+          {generatedItem && (
+            <div className="border-t border-border pt-6 mt-4">
+              <ListingChannels listings={generatedItem as any} />
+            </div>
+          )}
         </div>
 
         {/* Footer */}

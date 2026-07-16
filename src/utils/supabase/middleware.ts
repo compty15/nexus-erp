@@ -41,8 +41,7 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     !isAuthRoute &&
-    !isApiRoute &&
-    request.nextUrl.pathname !== '/'
+    !isApiRoute
   ) {
     // no user, redirect to login
     const url = request.nextUrl.clone();
@@ -63,7 +62,7 @@ export async function updateSession(request: NextRequest) {
   // If user is logged in, and tries to go to login page, redirect to items
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = '/items';
+    url.pathname = '/';
     return NextResponse.redirect(url);
   }
 

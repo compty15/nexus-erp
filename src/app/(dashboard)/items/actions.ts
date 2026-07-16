@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { getUserTeamId } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function createItem(title: string, description: string, priceStr: string, imageUrl: string) {
+export async function createItem(title: string, description: string, priceStr: string, imageUrl: string, listings: any = null) {
   const supabase = await createClient()
   const teamId = await getUserTeamId()
   
@@ -19,7 +19,8 @@ export async function createItem(title: string, description: string, priceStr: s
     title,
     description,
     price,
-    image_url: imageUrl || null
+    image_url: imageUrl || null,
+    listings: listings
   })
 
   if (error) {
@@ -28,4 +29,5 @@ export async function createItem(title: string, description: string, priceStr: s
   }
 
   revalidatePath('/items')
+  revalidatePath('/')
 }
