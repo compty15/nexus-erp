@@ -101,15 +101,48 @@ CREATE TABLE IF NOT EXISTS public.invites (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS public.app_config (
+    id TEXT PRIMARY KEY,
+    config_value JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    email TEXT,
+    role TEXT DEFAULT 'user' CHECK (role IN ('admin', 'user'))
+);
+
+-- Trigger: Auto-create Profile on Signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.profiles (id, email, role)
+    VALUES (new.id, new.email, 'user')
+    ON CONFLICT (id) DO UPDATE
+    SET email = EXCLUDED.email;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
 -- 5. Enable Row Level Security (RLS)
 ALTER TABLE public.global_admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.logistics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_config ENABLE ROW LEVEL SECURITY;
 
 -- 6. Helper function to check team membership (avoids RLS recursion)
 CREATE OR REPLACE FUNCTION public.is_team_member(team_id UUID, user_id UUID)
@@ -181,6 +214,43 @@ DROP POLICY IF EXISTS "Users can create invites for their team" ON public.invite
 CREATE POLICY "Users can create invites for their team" ON public.invites FOR INSERT WITH CHECK (
     EXISTS (SELECT 1 FROM public.teams WHERE teams.id = invites.team_id AND teams.owner_id = auth.uid())
 );
+
+DROP POLICY IF EXISTS "Allow select on app_config for everyone" ON public.app_config;
+CREATE POLICY "Allow select on app_config for everyone" ON public.app_config FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage app_config" ON public.app_config;
+CREATE POLICY "Admins can manage app_config" ON public.app_config FOR ALL USING (
+    EXISTS (SELECT 1 FROM public.global_admins WHERE global_admins.id = auth.uid())
+);
+
+-- Seed app_config with default billing and system statuses
+INSERT INTO public.app_config (id, config_value)
+VALUES 
+('billing_status', '{"total_budget": 500, "remaining_balance": 500, "total_spent": 0, "last_usage": "Never"}'),
+('system_status', '{"state": "Active", "reason": "No policy violations detected", "last_updated": "2026-07-16"}')
+ON CONFLICT (id) DO NOTHING;
+
+-- Profiles Policies
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
+CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
+CREATE POLICY "Admins can view all profiles" ON public.profiles FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.global_admins WHERE global_admins.id = auth.uid())
+);
+
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+
+-- Seed profiles for existing users
+INSERT INTO public.profiles (id, email, role)
+SELECT id, email, 'user' FROM auth.users
+ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
+
+-- Seed admin role in profiles
+UPDATE public.profiles
+SET role = 'admin'
+WHERE email = 'compton248@gmail.com';
 
 -- 7. Grant schema, table, and sequence access privileges to authenticated/anon users
 GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
