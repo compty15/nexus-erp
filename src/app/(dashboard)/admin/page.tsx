@@ -88,17 +88,34 @@ export default async function AdminPage() {
 
   // If we got here, they are an admin! 
   // Fetch global telemetry metrics
-  const [{ count: totalTeams }, { count: totalItems }, { count: totalShipments }, { count: totalServices }, { count: totalCustomers }, { data: contractors }, { data: commissions }] = await Promise.all([
+  const [
+    { count: totalTeams }, 
+    { count: totalItems }, 
+    { count: totalShipments }, 
+    { count: totalServices }, 
+    { count: totalCustomers }, 
+    { data: contractors }, 
+    { data: commissions },
+    telemetry
+  ] = await Promise.all([
     supabase.from('teams').select('*', { count: 'exact', head: true }),
     supabase.from('items').select('*', { count: 'exact', head: true }),
     supabase.from('logistics').select('*', { count: 'exact', head: true }),
     supabase.from('services').select('*', { count: 'exact', head: true }),
     supabase.from('customers').select('*', { count: 'exact', head: true }),
     supabase.from('global_contractors').select('*').order('created_at', { ascending: false }),
-    supabase.from('global_commissions').select('*').order('created_at', { ascending: false })
+    supabase.from('global_commissions').select('*').order('created_at', { ascending: false }),
+    import("./actions").then(mod => mod.getAdminTelemetry())
   ])
 
   const stats = { totalTeams, totalItems, totalShipments, totalServices, totalCustomers }
 
-  return <AdminClientView stats={stats} contractors={contractors || []} commissions={commissions || []} />
+  return (
+    <AdminClientView 
+      stats={stats} 
+      contractors={contractors || []} 
+      commissions={commissions || []} 
+      telemetry={telemetry}
+    />
+  )
 }
