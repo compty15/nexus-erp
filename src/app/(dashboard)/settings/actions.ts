@@ -116,3 +116,41 @@ export async function renameWorkspace(newName: string) {
 
   return { success: true }
 }
+
+export async function createNewWorkspace(name: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    throw new Error("Unauthorized.")
+  }
+
+  // 1. Insert new team
+  const { data: team, error: teamError } = await supabase
+    .from('teams')
+    .insert({ name: name, owner_id: user.id })
+    .select()
+    .single()
+
+  if (teamError || !team) {
+    console.error("Workspace insert error:", teamError)
+    throw new Error(teamError?.message || "Failed to create workspace.")
+  }
+
+  // 2. Insert team member as owner
+  const { error: memberError } = await supabase
+    .from('team_members')
+    .insert({ team_id: team.id, user_id: user.id, role: 'owner' })
+    
+  if (memberError) {
+    console.error("Member insert error:", memberError)
+    throw new Error(memberError.message || "Failed to join workspace.")
+  }
+
+  // 3. Set cookie
+  const cookieStore = await cookies()
+  cookieStore.set('active_team_id', team.id, { path: '/' })
+
+  revalidatePath('/', 'layout')
+  return { success: true, teamId: team.id }
+}

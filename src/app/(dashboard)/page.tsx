@@ -8,7 +8,25 @@ export default async function Home() {
   const teamId = await getUserTeamId()
 
   if (!teamId) {
-    redirect('/onboarding')
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6 text-center max-w-md mx-auto animate-in fade-in zoom-in duration-300">
+        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-sm shadow-primary/10">
+          <Package size={32} />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome to Nexx-Top</h1>
+          <p className="text-muted-foreground mt-2">
+            You don't have an active workspace yet. Workspaces let you organize items, services, logistics, and customer lists.
+          </p>
+        </div>
+        <a 
+          href="/settings?tab=workspaces" 
+          className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+        >
+          Go to Settings & Create Workspace
+        </a>
+      </div>
+    );
   }
 
   // Fetch real counts and recent data
