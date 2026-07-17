@@ -1,0 +1,22 @@
+# NEXUS ERP Professional - Task List
+
+- `[/]` Phase 1: Data & Infrastructure Hardening
+    - `[ ]` Update Supabase schema (`jobs`, `model_stats`, `inventory` updates)
+    - `[ ]` Install new dependencies (`dexie`, `next-pwa`)
+    - `[ ]` Implement `lib/offline-queue.ts` (IndexedDB)
+- `[ ]` Phase 2: Advanced AI Identification (V2)
+    - `[ ]` Implement `groupPhotos` logic in `lib/gemini.ts`
+    - `[ ]` Implement "Cheapest First" escalation logic
+    - `[ ]` Refactor `api/inventory/scan` for background jobs
+- `[ ]` Phase 3: Professional UI/UX
+    - `[ ]` Build `BatchConfirmation` component
+    - `[ ]` Build `NotificationCenter` (Push + In-App)
+    - `[ ]` Build `TaskCenter` (Activity Orb)
+    - `[ ]` Implement staggered animations on Home Dashboard
+- `[ ]` Phase 4: PWA & Offline Sync
+    - `[ ]` Configure Service Worker for offline support
+    - `[ ]` Implement "Wi-Fi Only" sync logic
+    - `[ ]` Add "Add to Home Screen" prompts
+- `[ ]` Phase 5: ERP Expansion (Optional)
+    - `[ ]` Shipping abstraction layer
+    - `[ ]` Banking/Financial dashboards
