@@ -8,7 +8,7 @@ export default function SettingsPage() {
   const [copied, setCopied] = useState(false);
   const [emailInvite, setEmailInvite] = useState("");
   const [inviteStatus, setInviteStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [generatedLink, setGeneratedLink] = useState<string>("https://nexx-top.vercel.app/login");
+  const [generatedLink, setGeneratedLink] = useState<string>("");
   
   const [workspaceName, setWorkspaceName] = useState("");
   const [renameStatus, setRenameStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -19,10 +19,13 @@ export default function SettingsPage() {
       if (name) setWorkspaceName(name);
     }
     loadName();
+    if (typeof window !== "undefined") {
+      setGeneratedLink(`${window.location.origin}/login`);
+    }
   }, []);
   
   const copyInviteLink = () => {
-    navigator.clipboard.writeText(generatedLink);
+    navigator.clipboard.writeText(generatedLink || (typeof window !== "undefined" ? `${window.location.origin}/login` : "https://nexx-top.vercel.app/login"));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -161,11 +164,12 @@ export default function SettingsPage() {
           </p>
           <div className="flex items-center gap-2 mt-2">
             <div className="bg-muted px-3 py-2 rounded-lg text-sm text-muted-foreground font-mono truncate flex-1 border border-border">
-              https://nexx-top.vercel.app/join
+              {typeof window !== "undefined" ? `${window.location.origin}/join` : "https://nexx-top.vercel.app/join"}
             </div>
             <button 
               onClick={() => {
-                navigator.clipboard.writeText("https://nexx-top.vercel.app/join");
+                const link = typeof window !== "undefined" ? `${window.location.origin}/join` : "https://nexx-top.vercel.app/join";
+                navigator.clipboard.writeText(link);
                 alert("App link copied to clipboard!");
               }}
               className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors flex items-center gap-2 shrink-0 justify-center"
@@ -174,6 +178,7 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );

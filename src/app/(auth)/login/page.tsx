@@ -1,10 +1,12 @@
 import { login, signup } from './actions'
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { verify?: string; error?: string; next?: string }
+  searchParams: Promise<{ verify?: string; error?: string; next?: string }>
 }) {
+  const resolvedParams = await searchParams;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
@@ -17,13 +19,13 @@ export default function LoginPage({
           </p>
         </div>
 
-        {searchParams?.verify && (
+        {resolvedParams?.verify && (
           <div className="bg-primary/20 text-primary border border-primary/50 p-3 rounded-lg text-sm text-center">
             Registration successful! Please check your email to verify your account before logging in.
           </div>
         )}
 
-        {searchParams?.error && (
+        {resolvedParams?.error && (
           <div className="bg-destructive/10 text-destructive border border-destructive/50 p-3 rounded-lg text-sm text-center">
             Authentication failed. Please check your credentials or try again.
           </div>
@@ -31,8 +33,8 @@ export default function LoginPage({
         
         <form className="flex flex-col gap-4 border border-border p-6 rounded-xl bg-card shadow-sm">
           <div className="grid gap-2">
-            {searchParams?.next && (
-              <input type="hidden" name="nextUrl" value={searchParams.next} />
+            {resolvedParams?.next && (
+              <input type="hidden" name="nextUrl" value={resolvedParams.next} />
             )}
             <label htmlFor="email" className="text-sm font-medium leading-none">Email</label>
             <input 

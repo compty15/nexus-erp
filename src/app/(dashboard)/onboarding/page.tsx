@@ -3,7 +3,12 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
+  const resolvedParams = await searchParams;
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -39,7 +44,7 @@ export default async function OnboardingPage() {
 
     if (teamError || !team) {
       console.error(teamError)
-      return
+      return redirect(`/onboarding?error=${encodeURIComponent(teamError?.message || 'Failed to create workspace')}`)
     }
 
     // Insert team member
@@ -49,6 +54,7 @@ export default async function OnboardingPage() {
       
     if (memberError) {
       console.error("Member Insert Error:", memberError)
+      return redirect(`/onboarding?error=${encodeURIComponent(memberError.message || 'Failed to join workspace')}`)
     }
 
     const cookieStore = await cookies()
@@ -69,6 +75,12 @@ export default async function OnboardingPage() {
             Let's set up your personal space. You can always invite others later to turn this into a Team.
           </p>
         </div>
+
+        {resolvedParams?.error && (
+          <div className="bg-destructive/10 text-destructive border border-destructive/50 p-3 rounded-lg text-sm text-center">
+            {resolvedParams.error}
+          </div>
+        )}
         
         <form action={createTeam} className="flex flex-col gap-4 mt-4">
           <div className="grid gap-2">

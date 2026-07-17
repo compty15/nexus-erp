@@ -13,14 +13,18 @@ export default async function DashboardLayout({
     getWorkspaceName()
   ]);
 
+  const hasTeam = !!activeTeamId;
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar 
-        workspaces={workspaces} 
-        activeTeamId={activeTeamId || ""} 
-        activeTeamName={activeTeamName} 
-      />
-      <main className="flex-1 ml-64 p-8">
+      {hasTeam && (
+        <Sidebar 
+          workspaces={workspaces} 
+          activeTeamId={activeTeamId || ""} 
+          activeTeamName={activeTeamName} 
+        />
+      )}
+      <main className={`flex-1 ${hasTeam ? 'ml-64' : ''} p-8`}>
         {children}
       </main>
     </div>

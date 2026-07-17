@@ -5,9 +5,9 @@ import { ShieldAlert, CheckCircle, ArrowRight } from "lucide-react";
 export default async function JoinPage({
   searchParams,
 }: {
-  searchParams: { token: string };
+  searchParams: Promise<{ token?: string }>;
 }) {
-  const token = searchParams.token;
+  const { token } = await searchParams;
 
   if (!token) {
     return (

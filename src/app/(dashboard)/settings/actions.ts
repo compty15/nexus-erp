@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient, getUserTeamId } from "@/utils/supabase/server"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 
 export async function getUserWorkspaces() {
@@ -73,7 +73,10 @@ export async function inviteUserByEmail(email: string) {
     throw new Error("Failed to create invite.")
   }
   
-  const joinLink = `https://nexx-top.vercel.app/join?token=${token}`
+  const headersList = await headers()
+  const host = headersList.get("host") || "nexx-top.vercel.app"
+  const protocol = host.startsWith("localhost") ? "http" : "https"
+  const joinLink = `${protocol}://${host}/join?token=${token}`
   console.log(`Generated invite link: ${joinLink}`)
   
   // Return the join link so the UI can display it for the user to copy
