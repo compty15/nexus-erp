@@ -182,7 +182,13 @@ CREATE POLICY "Users can create invites for their team" ON public.invites FOR IN
     EXISTS (SELECT 1 FROM public.teams WHERE teams.id = invites.team_id AND teams.owner_id = auth.uid())
 );
 
--- 7. FINALLY: Make you the Global Admin!
+-- 7. Grant schema, table, and sequence access privileges to authenticated/anon users
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, anon, authenticated, service_role;
+
+-- 8. FINALLY: Make you the Global Admin!
 INSERT INTO public.global_admins (id) 
 VALUES ('${realId}') ON CONFLICT (id) DO NOTHING;
   `;
