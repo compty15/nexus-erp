@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
-import BottomNav from "@/components/layout/BottomNav";
 import { EngineProvider } from "@/lib/engine-context";
-import NotificationCenter from "@/components/ui/NotificationCenter";
 import Providers from "@/shared/lib/providers";
-import DynamicBackground from "@/components/ui/DynamicBackground";
 import { UIProvider } from "@/lib/ui-context";
-import ViewModeWrapper from "@/components/layout/ViewModeWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NEXUS ERP | Universal Inventory",
-  description: "High-end universal inventory and business management",
+  title: "Nexx-Top | Personal Selling & Inventory",
+  description: "Modern personal ERP — manage your inventory, services, logistics, and customers in one place.",
 };
 
 export default function RootLayout({
@@ -32,19 +27,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
+      >
         <UIProvider>
           <Providers>
             <EngineProvider>
-              <DynamicBackground />
-              <Header />
-              <main className="relative z-10 min-h-screen pt-20 pb-32 md:pb-20">
-                <ViewModeWrapper>
-                  {children}
-                </ViewModeWrapper>
-              </main>
-              <BottomNav />
-              <NotificationCenter />
+              {children}
             </EngineProvider>
           </Providers>
         </UIProvider>
