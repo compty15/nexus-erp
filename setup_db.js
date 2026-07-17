@@ -111,40 +111,73 @@ ALTER TABLE public.logistics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invites ENABLE ROW LEVEL SECURITY;
 
+-- 6. Helper function to check team membership (avoids RLS recursion)
+CREATE OR REPLACE FUNCTION public.is_team_member(team_id UUID, user_id UUID)
+RETURNS BOOLEAN SECURITY DEFINER AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM public.team_members
+        WHERE team_members.team_id = $1 AND team_members.user_id = $2
+    );
+END;
+$$ LANGUAGE plpgsql;
+
 -- 6. RLS Policies
+DROP POLICY IF EXISTS "Admins can read admin list" ON public.global_admins;
 CREATE POLICY "Admins can read admin list" ON public.global_admins FOR SELECT USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can view teams they belong to" ON public.teams;
 CREATE POLICY "Users can view teams they belong to" ON public.teams FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.team_members WHERE team_members.team_id = teams.id AND team_members.user_id = auth.uid())
+    owner_id = auth.uid() OR public.is_team_member(id, auth.uid())
 );
+
+DROP POLICY IF EXISTS "Users can create teams" ON public.teams;
 CREATE POLICY "Users can create teams" ON public.teams FOR INSERT WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Only owners can update teams" ON public.teams;
 CREATE POLICY "Only owners can update teams" ON public.teams FOR UPDATE USING (auth.uid() = owner_id);
 
+DROP POLICY IF EXISTS "Users can view members of their teams" ON public.team_members;
 CREATE POLICY "Users can view members of their teams" ON public.team_members FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.team_members tm WHERE tm.team_id = team_members.team_id AND tm.user_id = auth.uid())
+    public.is_team_member(team_id, auth.uid())
 );
+
+DROP POLICY IF EXISTS "Owners can add members" ON public.team_members;
 CREATE POLICY "Owners can add members" ON public.team_members FOR INSERT WITH CHECK (
     EXISTS (SELECT 1 FROM public.teams WHERE teams.id = team_members.team_id AND teams.owner_id = auth.uid())
 );
+
+DROP POLICY IF EXISTS "Owners can remove members" ON public.team_members;
 CREATE POLICY "Owners can remove members" ON public.team_members FOR DELETE USING (
     EXISTS (SELECT 1 FROM public.teams WHERE teams.id = team_members.team_id AND teams.owner_id = auth.uid())
 );
 
+DROP POLICY IF EXISTS "Team members can access items" ON public.items;
 CREATE POLICY "Team members can access items" ON public.items FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.team_members WHERE team_members.team_id = items.team_id AND team_members.user_id = auth.uid())
+    public.is_team_member(team_id, auth.uid())
 );
+
+DROP POLICY IF EXISTS "Team members can access services" ON public.services;
 CREATE POLICY "Team members can access services" ON public.services FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.team_members WHERE team_members.team_id = services.team_id AND team_members.user_id = auth.uid())
+    public.is_team_member(team_id, auth.uid())
 );
+
+DROP POLICY IF EXISTS "Team members can access logistics" ON public.logistics;
 CREATE POLICY "Team members can access logistics" ON public.logistics FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.team_members WHERE team_members.team_id = logistics.team_id AND team_members.user_id = auth.uid())
+    public.is_team_member(team_id, auth.uid())
 );
+
+DROP POLICY IF EXISTS "Team members can access customers" ON public.customers;
 CREATE POLICY "Team members can access customers" ON public.customers FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.team_members WHERE team_members.team_id = customers.team_id AND team_members.user_id = auth.uid())
+    public.is_team_member(team_id, auth.uid())
 );
+
+DROP POLICY IF EXISTS "Users can view invites they sent" ON public.invites;
 CREATE POLICY "Users can view invites they sent" ON public.invites FOR SELECT USING (
     auth.uid() = inviter_id
 );
+
+DROP POLICY IF EXISTS "Users can create invites for their team" ON public.invites;
 CREATE POLICY "Users can create invites for their team" ON public.invites FOR INSERT WITH CHECK (
     EXISTS (SELECT 1 FROM public.teams WHERE teams.id = invites.team_id AND teams.owner_id = auth.uid())
 );
